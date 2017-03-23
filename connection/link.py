@@ -24,7 +24,7 @@ class Link(object):
         new_headers['Authorization'] = "Basic " + self.server_data['authorization']
         # url
         new_url = 'https://dev30036.service-now.com/api/now/table/sys_script?sysparm_limit=2'
-        request_object = request.Request(new_url, headers=headers)
+        request_object = request.Request(new_url, headers=new_headers)
         url_connection=request.urlopen(request_object)
         connection_result=url_connection.read()
         dict_result=loads(connection_result.decode("utf-8"))
