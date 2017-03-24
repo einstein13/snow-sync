@@ -3,16 +3,26 @@ from pipes.input import Input
 from pipes.output import Output
 from connection.link import Link
 
+from time import sleep
+
 def main():
-    input_queue = []
+    input_queue = {'requests': [], 'responses': {}}
     output_queue = []
+    general_data = {'running': True}
 
-    input_object = Input(input_queue, output_queue)
-    output_object = Output(input_queue, output_queue)
+    input_object = Input(input_queue, output_queue, general_data)
+    input_object.run()
+    output_object = Output(input_queue, output_queue, general_data)
+    output_object.run()
 
-    link = Link('my_dev_instance')
-    out = link.connect()
-    print(out)
+    # link = Link('my_dev_instance')
+    # out = link.connect()
+    # print(out)
+
+    output_queue.append("example message")
+    sleep(4)
+    output_queue.append("example message")
+    general_data['running'] = False
 
 main ()
 
