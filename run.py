@@ -1,6 +1,7 @@
 from settings.servers import servers
 from pipes.input import Input
 from pipes.output import Output
+from self_server.server import Server
 from connection.link import Link
 
 from time import sleep
@@ -8,21 +9,36 @@ from time import sleep
 def main():
     input_queue = {'requests': [], 'responses': {}}
     output_queue = []
-    general_data = {'running': True}
+    general_data = {'running': True, 'server_queue': []}
 
     input_object = Input(input_queue, output_queue, general_data)
-    input_object.run()
+    input_thread = input_object.run()
     output_object = Output(input_queue, output_queue, general_data)
-    output_object.run()
+    output_thread = output_object.run()
+
+    server = Server(input_queue, output_queue, general_data)
+    server_thread = server.run()
+
+    while general_data['running']:
+        sleep(1)
+
+    # closing the server
+    if input_thread.isAlive():
+        print("\n* * * * * * * * * * *\nHit any key to close\n* * * * * * * * * * *")
+    else:
+        print("\n* * * * * * * * * *\nAll thread closed\n* * * * * * * * * *")
+
+    # everything closed
+    return
 
     # link = Link('my_dev_instance')
     # out = link.connect()
     # print(out)
 
-    output_queue.append("example message")
-    sleep(4)
-    output_queue.append("example message")
-    general_data['running'] = False
+    # output_queue.append("example message")
+    # sleep(4)
+    # output_queue.append("example message")
+    # general_data['running'] = False
 
 main ()
 
