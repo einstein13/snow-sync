@@ -5,6 +5,7 @@ from self_server.server import Server
 from connection.link import Link
 
 from time import sleep
+from threading import active_count
 
 def main():
     input_queue = {'requests': [], 'responses': {}}
@@ -20,10 +21,11 @@ def main():
     server_thread = server.run()
 
     while general_data['running']:
-        sleep(1)
+        sleep(3)
 
     # closing the server
-    if input_thread.isAlive():
+    sleep(1)
+    if active_count() != 1:
         print("\n* * * * * * * * * * *\nHit any key to close\n* * * * * * * * * * *")
     else:
         print("\n* * * * * * * * * *\nAll thread closed\n* * * * * * * * * *")

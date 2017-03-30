@@ -1,6 +1,8 @@
 from threading import Thread
 from time import sleep
 
+from commons.threads import ThreadCommons
+
 class ServerCommands(object):
 
     def exit_all(self):
@@ -14,13 +16,10 @@ class ServerCommands(object):
         self.output_queue.append(message)
         return
 
-class Server(ServerCommands):
+class Server(ThreadCommons, ServerCommands):
 
     def __init__(self, inp, out, gen_dat):
-        super(Server, self).__init__()
-        self.input_queue = inp
-        self.output_queue = out
-        self.general_data = gen_dat
+        super(Server, self).__init__(inp, out, gen_dat)
         return
 
     def run_command(self,command):
@@ -38,8 +37,3 @@ class Server(ServerCommands):
                 self.run_command(command)
             sleep(0.03)
         return
-
-    def run(self):
-        thread = Thread(target = self.run_thread)
-        thread.start()
-        return thread

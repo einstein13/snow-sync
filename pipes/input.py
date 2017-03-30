@@ -1,17 +1,14 @@
-from threading import Thread
 from time import sleep
 
+from commons.threads import ThreadCommons
 from .getch import getch
 
-class Input(object):
+class Input(ThreadCommons):
 
     input_command = ''
 
     def __init__(self, inp, out, gen_dat):
-        super(Input, self).__init__()
-        self.input_queue = inp
-        self.output_queue = out
-        self.general_data = gen_dat
+        super(Input, self).__init__(inp, out, gen_dat)
         self.input_command = ''
         return
 
@@ -19,48 +16,49 @@ class Input(object):
         inp = getch()
         # special characters: F1-F12, Arrows
         if ord(inp) in (224, 0):
-            print("SPECIAL sign")
-            return self.scan()
+            # print("SPECIAL sign")
+            inp1 = inp
+            inp2 = self.scan()
+            # TO DO: what with those signs?
+            return None
         # standard keyboard sign
         try:
             return inp.decode("utf-8")
         except:
             pass
 
-        print("ERROR parsing the sign [%s]" % ord())
-        return "E"
-
-
-
-        inp = getch()
-        print("[%s]"%ord(inp),end="")
-        if ord(inp) in (224, 0):
-            x = self.scan()
-            return b"UNKNOWN"
-        try:
-            sign = inp.decode("utf-8")
-            print(sign)
-            return sign
-        except:
-            print("ERROR")
-        # self.input_command += inp.decode("utf-8")
-        return inp
+        print("ERROR parsing the sign [%s]" % ord(inp))
+        return None
 
     def run_thread(self):
-        from random import randint
         while self.general_data['running']:
             sign = self.scan()
+            if sign is None:
+                continue
             # self.output_queue.append(str(ord(sign)))
             # self.output_queue.append(sign)
-            print(sign)
-            if len(sign) == 1 and ord(sign) == 69:
-                self.general_data['server_queue'].append('exit_all')
+            if len(sign) == 1:
+                # print(ord(sign))
+                if ord(sign) == 69: # "E"
+                    self.general_data['server_queue'].append('exit_all')
+                elif ord(sign) == 13: # Enter
+                    self.general_data['server_queue'].append(self.input_command)
+                    self.output_queue.append({'message': self.input_command, 'type': 'full_command'})
+                    self.input_command = ''
+                elif ord(sign) == 9: # Tab
+                    # TO DO!
+                    continue
+                elif ord(sign) == 27: # Esc
+                    # TO DO!
+                    continue
+                elif ord(sign) == 8: # Backspace
+                    self.input_command = self.input_command[:-1]
+                    continue
+                else:
+                    self.input_command += sign
+                    self.output_queue.append({'message': sign, 'type': 'sign'})
+                # print(self.output_queue)
             else:
                 sleep(0.01)
         return
-
-    def run(self):
-        thread = Thread(target = self.run_thread)
-        thread.start()
-        return thread
 
