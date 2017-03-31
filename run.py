@@ -26,9 +26,9 @@ def main():
     # closing the server
     sleep(1)
     if active_count() != 1:
-        print("\n* * * * * * * * * * *\nHit any key to close\n* * * * * * * * * * *")
+        print("\n* * * * * * * * * * * * * * * * * * * *\nHit any key to close\n* * * * * * * * * * * * * * * * * * * *")
     else:
-        print("\n* * * * * * * * * *\nAll thread closed\n* * * * * * * * * *")
+        print("\n* * * * * * * * * * * * * * * * * * * *\nAll thread closed\n* * * * * * * * * * * * * * * * * * * *")
 
     # everything closed
     return

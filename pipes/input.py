@@ -39,9 +39,7 @@ class Input(ThreadCommons):
             # self.output_queue.append(sign)
             if len(sign) == 1:
                 # print(ord(sign))
-                if ord(sign) == 69: # "E"
-                    self.general_data['server_queue'].append('exit_all')
-                elif ord(sign) == 13: # Enter
+                if ord(sign) == 13: # Enter
                     self.general_data['server_queue'].append(self.input_command)
                     self.output_queue.append({'message': '\n', 'type': 'command_sign'})
                     self.output_queue.append({'message': self.input_command, 'type': 'full_command'})
