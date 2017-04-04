@@ -23,6 +23,13 @@ class DataPrint(object):
         sys.stdout.flush()
         return
 
+    def pretty_print(self, text):
+        prettiness = "* * * * * * * * * * * * * * * * * * * *"
+        self.print(prettiness, begin="\n")
+        self.print(text)
+        self.print(prettiness, end="\n\n")
+        return
+
     def clean_comand_line(self, length):
         self.print(chr(8)*length, end="")
         if not self.flags['input_command_interrupted']:
@@ -73,12 +80,14 @@ class DataPrint(object):
         elif type(data) is dict:
             if data['type'] is 'text':
                 self.print(data['message'])
-            if data['type'] is 'command_sign':
+            elif data['type'] is 'command_sign':
                 self.write_command_sign(data['message'])
-            if data['type'] is 'full_command':
+            elif data['type'] is 'full_command':
                 self.write_full_command(data['message'])
-            if data['type'] is 'abort_command':
+            elif data['type'] is 'abort_command':
                 self.abort_command(data['message'])
+            elif data['type'] is 'pretty_text':
+                self.pretty_print(data['message'])
         else:
             self.print(data)
         return
