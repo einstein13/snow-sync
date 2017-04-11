@@ -51,6 +51,8 @@ class ServerCommands(FileSystem):
             return
         folder_path = self.get_project_path()
         print(folder_path)
+        print("* * *")
+        self.get_settings_folder()
         return
 
     # push to the server

@@ -21,3 +21,17 @@ class FileSystem(object):
         folder_path = path.abspath(path.join(folder_path, pardir))
         return folder_path
 
+    def get_settings_folder(self):
+        if self.settings == {}:
+            return None
+        settings_path = self.get_project_path()
+        print(path.isdir(settings_path))
+        print(path.exists(settings_path))
+        settings_path = path.abspath(path.join(settings_path, "settings"))
+        print(path.isdir(settings_path))
+        print(path.exists(settings_path))
+        settings_path = path.abspath(path.join(settings_path, self.settings['name']))
+        print(path.isdir(settings_path))
+        print(path.exists(settings_path))
+        return settings_path
+
