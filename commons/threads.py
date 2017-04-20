@@ -10,6 +10,15 @@ class ThreadCommons(object):
         self.general_data = gen_dat # DICT: {'running': True, 'server_queue': []}
         return
 
+    def push_output(self, message, typ="text"):
+        dictionary = {'type': typ, 'message': message}
+        self.output_queue.append(dictionary)
+        return
+
+    def push_input(self, dictionary):
+        self.input_queue.append(dictionary)
+        return
+
     def run_thread(self):
         while self.general_data['running']:
             print("running thread")

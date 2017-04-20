@@ -21,11 +21,17 @@ class Server(ThreadCommons, ServerCommands):
         command_parts = command.split(" ")
         help_text = " ".join(command_parts[1:])
         all_known_commands = [
-            "help - shows help",
-            "exit - close down program",
-            "read_settings - read settings from recorded file",
-            "pull - get all files from the server",
-            "push - update files on the server"
+            "BASIC:",
+            "  help - shows help",
+            "  exit - close down program (at any stage)",
+            "SETTINGS:",
+            "  show_settings - show table with all known settings",
+            "  read_settings - read chosen settings from recorded file",
+            "  add_settings - add new settings to recorded file",
+            "  delete_settings - delete chosen settings from recorded file",
+            "SYNCHRO:",
+            "  pull - get all files from the server",
+            "  push - update files on the server"
             ]
         if help_text == 'SOMETHING':
             string = "UNKNOWN MESSAGE"
@@ -36,12 +42,23 @@ class Server(ThreadCommons, ServerCommands):
         return
 
     # user commands
-    def get_user_input(self, question, options=[]):
-        if options == []:
-            self.output_queue.append({'type': 'text', 'message': question})
-        else:
-            self.output_queue.append({'type': 'text', 'message': question})
-        return
+    def get_user_input(self, question, command=None, options=[]):
+        self.output_queue.append({'type': 'text', 'message': question})
+
+        data_to_input = {'command': question}
+        if command is not None:
+            data_to_input['command'] = command
+        if len(options) > 0:
+            data_to_input['options'] = options
+        self.input_queue.append(data_to_input)
+
+        while 'answer' not in data_to_input:
+            sleep(0.05)
+
+        answer = data_to_input['answer']
+        self.input_queue.pop(0) # clear input queue
+
+        return answer
 
     # interpreting commands
     def run_command(self, command):

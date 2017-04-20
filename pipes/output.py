@@ -3,6 +3,7 @@ import sys
 from time import sleep
 
 from commons.threads import ThreadCommons
+from commons.prints import pretty_json_print
 
 class DataPrint(object):
 
@@ -124,6 +125,11 @@ class DataPrint(object):
         line_to_print += "┘"
         self.print(line_to_print)
 
+        return
+
+    def json_print(self, data):
+        result = pretty_json_print(data)
+        self.print(result)
         return
 
     def print_data(self, data):

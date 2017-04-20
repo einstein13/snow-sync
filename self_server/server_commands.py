@@ -39,6 +39,8 @@ class ServerCommands(FileSystem):
     def add_settings(self, command):
         from settings.servers import servers
         name = self.get_user_input('Type settings name:')
+        self.output_queue.append({'type': 'pretty_text', 'message': name})
+        return
 
     # pull from the server
     def pull_all_files(self, command):
