@@ -5,7 +5,7 @@ class ThreadCommons(object):
     """docstring for ThreadCommons"""
     def __init__(self, inp, out, gen_dat):
         super(ThreadCommons, self).__init__()
-        self.input_queue = inp # DICT: {'requests': [], 'responses': {}}
+        self.input_queue = inp # DICT: []
         self.output_queue = out # LIST: []
         self.general_data = gen_dat # DICT: {'running': True, 'server_queue': []}
         return

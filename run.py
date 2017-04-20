@@ -8,7 +8,7 @@ from time import sleep
 from threading import active_count
 
 def main():
-    input_queue = {'requests': [], 'responses': {}}
+    input_queue = []
     output_queue = []
     general_data = {'running': True, 'server_queue': []}
 

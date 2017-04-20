@@ -74,6 +74,58 @@ class DataPrint(object):
         self.flags['input_command_writing'] = False
         return
 
+    def table_print(self, data):
+        # length of columns
+        lengths = [0] * len(data[0])
+        for itr1 in range(len(data)):
+            row = data[itr1]
+            for itr2 in range(len(row)):
+                if len(row[itr2]) > lengths[itr2]:
+                    lengths[itr2] = len(row[itr2])
+        for itr1 in range(len(lengths)):
+            lengths[itr1] += 2
+
+        # print header
+        line_to_print = "┌" + "─" * (lengths[0])
+        for itr1 in range(1, len(lengths)):
+            line_to_print += "┬" + "─" * (lengths[itr1])
+        line_to_print += "┐"
+        self.print(line_to_print)
+
+        line_to_print = ""
+        for itr1 in range(len(lengths)):
+            element = data[0][itr1]
+            additional_spaces = (lengths[itr1] - len(element) -1)
+            line_to_print += "│ " + element + " " * additional_spaces
+        line_to_print += "│"
+        self.print(line_to_print)
+
+        line_to_print = "├" + "─" * (lengths[0])
+        for itr1 in range(1, len(lengths)):
+            line_to_print += "┼" + "─" * (lengths[itr1])
+        line_to_print += "┤"
+        self.print(line_to_print)
+
+        # print body
+        line_to_print = ""
+        for itr1 in range(1, len(data)):
+            row = data[itr1]
+            for itr2 in range(len(row)):
+                element = row[itr2]
+                additional_spaces = (lengths[itr2] - len(element) -1)
+                line_to_print += "│ " + element + " " * additional_spaces
+            line_to_print += "│"
+            self.print(line_to_print)
+
+        # end table
+        line_to_print = "└" + "─" * (lengths[0])
+        for itr1 in range(1, len(lengths)):
+            line_to_print += "┴" + "─" * (lengths[itr1])
+        line_to_print += "┘"
+        self.print(line_to_print)
+
+        return
+
     def print_data(self, data):
         if type(data) is str:
             self.print(data)
@@ -88,6 +140,8 @@ class DataPrint(object):
                 self.abort_command(data['message'])
             elif data['type'] is 'pretty_text':
                 self.pretty_print(data['message'])
+            elif data['type'] is 'table':
+                self.table_print(data['message'])
         else:
             self.print(data)
         return

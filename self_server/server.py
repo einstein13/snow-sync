@@ -35,8 +35,16 @@ class Server(ThreadCommons, ServerCommands):
         self.output_queue.append({'type': 'pretty_text', 'message': string})
         return
 
+    # user commands
+    def get_user_input(self, question, options=[]):
+        if options == []:
+            self.output_queue.append({'type': 'text', 'message': question})
+        else:
+            self.output_queue.append({'type': 'text', 'message': question})
+        return
+
     # interpreting commands
-    def run_command(self,command):
+    def run_command(self, command):
         if command == 'exit':
             self.exit_all()
         elif command.split(" ")[0] == 'read_settings':
@@ -47,6 +55,10 @@ class Server(ThreadCommons, ServerCommands):
             self.push_all_files(command)
         elif command.split(" ")[0] in ("help", "man"):
             self.show_help(command)
+        elif command == "add_settings" or command == "add settings":
+            self.add_settings(command)
+        elif command == "show_settings" or command == "show settings":
+            self.show_settings(command)
         else:
             self.push_unknown_command(command)
         return
