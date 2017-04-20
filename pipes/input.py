@@ -54,8 +54,8 @@ class Input(ThreadCommons):
 
     def send_completed_command(self):
         self.general_data['server_queue'].append(self.input_command)
-        self.output_queue.append({'message': '\n', 'type': 'command_sign'})
-        self.output_queue.append({'message': self.input_command, 'type': 'full_command'})
+        self.push_output('\n', typ='command_sign')
+        self.push_output(self.input_command, typ='full_command')
         self.cleanup_input_command()
         return
 
@@ -67,7 +67,7 @@ class Input(ThreadCommons):
 
         # command not in list
         if self.command_valid_list and answer not in self.command_valid_list:
-            self.output_queue.append({'message': self.command_invalid_message, 'type': 'text'})
+            self.push_output(self.command_invalid_message)
             return
         
         self.input_queue[0]['answer'] = answer
@@ -85,18 +85,18 @@ class Input(ThreadCommons):
         pass
 
     def abort_written_command(self):
-        self.output_queue.append({'message': chr(8)*len(self.input_command), 'type': 'abort_command'})
+        self.push_output(chr(8)*len(self.input_command), typ='abort_command')
         self.input_command = ''
         return
 
     def remove_one_character(self):
         self.input_command = self.input_command[:-1]
-        self.output_queue.append({'message': chr(8), 'type': 'command_sign'})
+        self.push_output(chr(8), typ='command_sign')
         return
 
     def add_command_sign(self, sign):
         self.input_command += sign
-        self.output_queue.append({'message': sign, 'type': 'command_sign'})
+        self.push_output(sign, typ='command_sign')
         return
 
     def abort_current_command(self):
@@ -129,8 +129,8 @@ class Input(ThreadCommons):
         else:
             if ord(sign) == 13: # Enter
                 if self.input_command:
-                    self.output_queue.append({'message': '\n', 'type': 'command_sign'})
-                    self.output_queue.append({'message': self.input_command, 'type': 'full_command'})
+                    self.push_output('\n', typ='command_sign')
+                    self.push_output(self.input_command, typ='full_command')
                     self.push_answer()
             elif ord(sign) == 9: # Tab
                 # TO DO
@@ -180,7 +180,6 @@ class Input(ThreadCommons):
 
             # cleaning up old messages
             self.cleanup_input_command()
-            self.output_queue.append({'message': '\n', 'type': 'command_sign'})
 
         return
 

@@ -14,7 +14,7 @@ class Server(ThreadCommons, ServerCommands):
     # help parts
     def show_starting_screen(self):
         string = "Welcome to the SNow synch server\nTo show help type \"help\" and push Enter"
-        self.output_queue.append({'type': 'pretty_text', 'message': string})
+        self.push_output(string, typ='pretty_text')
         return
 
     def show_help(self, command):
@@ -38,25 +38,20 @@ class Server(ThreadCommons, ServerCommands):
         else:
             string = "H E L P\nPossible commands:\n"
             string += "\n".join(all_known_commands)
-        self.output_queue.append({'type': 'pretty_text', 'message': string})
+        self.push_output(string, typ='pretty_text')
         return
 
     # user commands
     def get_user_input(self, question, command=None, options=[]):
-        self.output_queue.append({'type': 'text', 'message': question})
+        self.push_output(question)
 
         data_to_input = {'command': question}
         if command is not None:
             data_to_input['command'] = command
         if len(options) > 0:
             data_to_input['options'] = options
-        self.input_queue.append(data_to_input)
 
-        while 'answer' not in data_to_input:
-            sleep(0.05)
-
-        answer = data_to_input['answer']
-        self.input_queue.pop(0) # clear input queue
+        answer = self.get_input_data(data_to_input)
 
         return answer
 

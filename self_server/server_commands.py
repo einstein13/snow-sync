@@ -12,7 +12,7 @@ class ServerCommands(FileSystem):
     def read_settings(self, command):
         from settings.servers import servers
         if len(servers) == 0:
-            self.output_queue.append({'type': 'text', 'message': "No settings included!"})
+            self.push_output("No settings included!")
             return
 
         command_parts = command.split(" ")
@@ -22,7 +22,7 @@ class ServerCommands(FileSystem):
 
         found_settings = list_dict_find(servers, command_parts[1])
         self.settings = found_settings[1]
-        self.output_queue.append({'type': 'text', 'message': message_ok + " (%s, %s)" % (found_settings[0], found_settings[1]['name'])})
+        self.push_output(message_ok + " (%s, %s)" % (found_settings[0], found_settings[1]['name']))
         return
 
     def show_settings(self, command):
@@ -32,20 +32,20 @@ class ServerCommands(FileSystem):
             server = servers[itr]
             elements.append([str(itr), server['name'], server['base_url']])
 
-        self.output_queue.append({'type': 'text', 'message': 'List of known servers:'})
-        self.output_queue.append({'type': 'table', 'message': elements})
+        self.push_output("List of known servers:")
+        self.push_output(elements, typ="table")
         return
 
     def add_settings(self, command):
         from settings.servers import servers
         name = self.get_user_input('Type settings name:')
-        self.output_queue.append({'type': 'pretty_text', 'message': name})
+        self.push_output(name, typ="pretty_text")
         return
 
     # pull from the server
     def pull_all_files(self, command):
         if self.settings == {}:
-            self.output_queue.append({'type': 'text', 'message': 'No settings defined! (read_settings)'})
+            self.push_output("No settings defined! (hint: read_settings)")
             return
         folder_path = self.get_project_path()
         print(folder_path)
@@ -59,14 +59,11 @@ class ServerCommands(FileSystem):
 
     # exiting program
     def exit_all(self):
-        self.output_queue.append({'type': 'pretty_text', 'message': 'Exiting program'})
+        self.push_output("Exiting program", typ="pretty_text")
         sleep(0.05)
         self.general_data['running'] = False
         return
 
     def push_unknown_command(self, command):
-        message = {}
-        message['message'] = 'Unknown command: '+command
-        message['type'] = 'text'
-        self.output_queue.append(message)
+        self.push_output("Unknown command: " + command)
         return

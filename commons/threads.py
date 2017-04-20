@@ -15,9 +15,15 @@ class ThreadCommons(object):
         self.output_queue.append(dictionary)
         return
 
-    def push_input(self, dictionary):
+    def get_input_data(self, dictionary):
         self.input_queue.append(dictionary)
-        return
+
+        while 'answer' not in dictionary:
+            sleep(0.05)
+
+        answer = dictionary['answer']
+        self.input_queue.pop(0) # clear input queue
+        return answer
 
     def run_thread(self):
         while self.general_data['running']:
