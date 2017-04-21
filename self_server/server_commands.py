@@ -1,7 +1,9 @@
+from base64 import b64encode
 from time import sleep
 from os import path, pardir
 
 from commons.find import list_dict_find
+from commons.prints import pretty_json_print
 from .file_system import FileSystem
 
 class ServerCommands(FileSystem):
@@ -40,6 +42,7 @@ class ServerCommands(FileSystem):
         from settings.servers import servers
         exit_current = 'exit_current_command'
 
+        # get needed info
         name = self.get_user_input('Type settings name:')
         if name is None:
             self.abort_current_command(exit_current)
@@ -51,8 +54,8 @@ class ServerCommands(FileSystem):
             return
 
         default_url = 'https://%s.servicenow.com/' % instance_name
-        full_url = self.get_user_input('Instance url [%s]:' % default_url, default=default_url)
-        if full_url is None:
+        instance_url = self.get_user_input('Instance url [%s]:' % default_url, default=default_url)
+        if instance_url is None:
             self.abort_current_command(exit_current)
             return
 
@@ -61,10 +64,28 @@ class ServerCommands(FileSystem):
             self.abort_current_command(exit_current)
             return
 
-        user_password = self.get_user_input('Password for instnce:', typ='password')
+        user_password = self.get_user_input('User password for instnce:', typ='password')
+        if user_password is None:
+            self.abort_current_command(exit_current)
+            return
 
-        data = [name, instance_name, full_url, user_name, user_password]
-        self.push_output(str(data), typ="pretty_text")
+        hashed_data = b64encode(bytes(user_name + ":" + user_password, "UTF-8")).decode("UTF-8")
+
+        # add settings to servers list
+        completed_data = {
+            'name': name,
+            'authorization': hashed_data,
+            'instance_name': instance_name,
+            'instance_url': instance_url
+        }
+        servers.append(completed_data)
+        string_data = pretty_json_print(servers)
+        self.override_servers_settings_file(string_data)
+        self.push_output("Settings stored", typ="inset")
+
+        # add folder to settings
+        # TO DO!
+
         return
 
     # pull from the server

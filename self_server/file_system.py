@@ -21,15 +21,12 @@ class FileSystem(object):
         folder_path = path.join(folder_path, pardir)
         return folder_path
 
-    def override_servers_file(self):
+    def override_servers_settings_file(self, string_data):
         project_path = self.get_project_path()
         file_path = path.join(project_path, "settings")
         file_path = path.join(file_path, "servers.json")
-        print(file_path)
-        # file_path = file_path.replace("\\","/")
-        # print(file_path)
-        file = open(file_path, "r")
-        print(file.read())
+        file = open(file_path, "w")
+        file.write(string_data)
         file.close()
         return
 

@@ -1,0 +1,8 @@
+[
+    {
+        "name": "my_dev_instance",
+        "authorization": "YWRtaW46RWluc3RlaW4uMTM=",
+        "instance_name": "dev30036",
+        "instance_url": "https://dev30036.service-now.com/"
+    }
+]
