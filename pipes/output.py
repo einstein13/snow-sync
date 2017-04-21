@@ -31,6 +31,10 @@ class DataPrint(object):
         self.print(prettiness, end="\n\n")
         return
 
+    def print_inset(self, text):
+        self.print("> " + text)
+        return
+
     def clean_comand_line(self, length):
         self.print(chr(8)*length, end="")
         if not self.flags['input_command_interrupted']:
@@ -146,6 +150,8 @@ class DataPrint(object):
                 self.abort_command(data['message'])
             elif data['type'] is 'pretty_text':
                 self.pretty_print(data['message'])
+            elif data['type'] is 'inset':
+                self.print_inset(data['message'])
             elif data['type'] is 'table':
                 self.table_print(data['message'])
         else:

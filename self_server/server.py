@@ -1,6 +1,7 @@
 from threading import Thread
 from time import sleep
 
+from commons.find import remove_from_list
 from commons.threads import ThreadCommons
 from .server_commands import ServerCommands
 
@@ -42,7 +43,7 @@ class Server(ThreadCommons, ServerCommands):
         return
 
     # user commands
-    def get_user_input(self, question, command=None, options=[]):
+    def get_user_input(self, question, command=None, default=None, options=[], typ=None):
         self.push_output(question)
 
         data_to_input = {'command': question}
@@ -50,10 +51,27 @@ class Server(ThreadCommons, ServerCommands):
             data_to_input['command'] = command
         if len(options) > 0:
             data_to_input['options'] = options
+        if default is not None:
+            data_to_input['default_value'] = default
+
+        if typ is not None:
+            if typ == 'password':
+                data_to_input['character_replacement'] = '*'
 
         answer = self.get_input_data(data_to_input)
 
         return answer
+
+    # handling with server input queue
+    def remove_first_input(self):
+        if len(self.general_data['server_queue']) > 0:
+            self.general_data['server_queue'].pop(0)
+        return
+
+    def abort_current_command(self, name_to_remove):
+        removed = remove_from_list(self.general_data['server_queue'], name_to_remove)
+        self.push_output("Command aborted", typ="inset")
+        return
 
     # interpreting commands
     def run_command(self, command):

@@ -30,7 +30,7 @@ class ServerCommands(FileSystem):
         elements = [['No', 'name', 'url']]
         for itr in range(len(servers)):
             server = servers[itr]
-            elements.append([str(itr), server['name'], server['base_url']])
+            elements.append([str(itr), server['name'], server['instance_url']])
 
         self.push_output("List of known servers:")
         self.push_output(elements, typ="table")
@@ -38,8 +38,33 @@ class ServerCommands(FileSystem):
 
     def add_settings(self, command):
         from settings.servers import servers
+        exit_current = 'exit_current_command'
+
         name = self.get_user_input('Type settings name:')
-        self.push_output(name, typ="pretty_text")
+        if name is None:
+            self.abort_current_command(exit_current)
+            return
+
+        instance_name = self.get_user_input('Instance name [%s]:' % name, default=name)
+        if instance_name is None:
+            self.abort_current_command(exit_current)
+            return
+
+        default_url = 'https://%s.servicenow.com/' % instance_name
+        full_url = self.get_user_input('Instance url [%s]:' % default_url, default=default_url)
+        if full_url is None:
+            self.abort_current_command(exit_current)
+            return
+
+        user_name = self.get_user_input('Username for instance [admin]:', default='admin')
+        if user_name is None:
+            self.abort_current_command(exit_current)
+            return
+
+        user_password = self.get_user_input('Password for instnce:', typ='password')
+
+        data = [name, instance_name, full_url, user_name, user_password]
+        self.push_output(str(data), typ="pretty_text")
         return
 
     # pull from the server

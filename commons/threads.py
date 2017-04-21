@@ -22,6 +22,7 @@ class ThreadCommons(object):
             sleep(0.05)
 
         answer = dictionary['answer']
+
         self.input_queue.pop(0) # clear input queue
         return answer
 

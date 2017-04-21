@@ -12,11 +12,13 @@ class Input(ThreadCommons):
     command_valid_list = None
     command_invalid_message = None
     command_case_sensitive = True
+    command_default_value = None
+    command_character_replacement = None
 
     def __init__(self, inp, out, gen_dat):
         super(Input, self).__init__(inp, out, gen_dat)
         self.input_command = ''
-        self.interpreting_command = None
+        self.input_history = []
         return
 
     # scanning input
@@ -50,6 +52,8 @@ class Input(ThreadCommons):
         self.command_valid_list = None
         self.command_invalid_message = None
         self.command_case_sensitive = True
+        self.command_default_value = None
+        self.command_character_replacement = None
         return
 
     def send_completed_command(self):
@@ -73,8 +77,6 @@ class Input(ThreadCommons):
         self.input_queue[0]['answer'] = answer
         self.cleanup_command_interpretation()
         return
-
-
 
     def send_quiet_command(self, command):
         self.general_data['server_queue'].append(command)
@@ -103,13 +105,21 @@ class Input(ThreadCommons):
         self.general_data['server_queue'].append('abort_current')
         return
 
+    def quit_current_command(self):
+        self.input_queue[0]['answer'] = None
+        self.general_data['server_queue'].append('exit_current_command')
+        return
+
     # reaction switch
     def interpret_sign(self, sign):
 
+        # standard command
         if self.command_interpreting is None:
             if ord(sign) == 13: # Enter
                 if self.input_command:
                     self.send_completed_command()
+                else:
+                    self.push_output("", typ="text")
             elif ord(sign) == 9: # Tab
                 self.autofill_command()
             elif ord(sign) == 27: # Esc
@@ -126,29 +136,39 @@ class Input(ThreadCommons):
             else:
                 self.add_command_sign(sign)
 
+        # expected command
         else:
             if ord(sign) == 13: # Enter
                 if self.input_command:
                     self.push_output('\n', typ='command_sign')
-                    self.push_output(self.input_command, typ='full_command')
+                    if self.command_character_replacement is None:
+                        self.push_output(self.input_command, typ='full_command')
+                    self.push_answer()
+                elif self.command_default_value:
+                    if self.command_character_replacement is None:
+                        self.push_output(self.command_default_value, typ='full_command')
+                    self.input_command = self.command_default_value
                     self.push_answer()
             elif ord(sign) == 9: # Tab
                 # TO DO
                 pass
             elif ord(sign) == 27: # Esc
-                if self.input_command == '':
-                    # What should be done?
-                    self.send_quiet_command('exit_with_prompt')
-                else:
+                if self.input_command != '':
                     self.abort_written_command()
+                else:
+                    self.quit_current_command()
+                    self.cleanup_command_interpretation()
             elif ord(sign) == 8: # Backspace
                 if len(self.input_command) == 1:
                     self.abort_written_command()
                 elif len(self.input_command) > 1:
                     self.remove_one_character()
             else:
-                self.add_command_sign(sign)
-
+                if self.command_character_replacement is None:
+                    self.add_command_sign(sign)
+                else:
+                    self.input_command += sign
+                    self.push_output(self.command_character_replacement, typ='command_sign')
         return
 
     # varoius things
@@ -177,6 +197,14 @@ class Input(ThreadCommons):
             self.command_case_sensitive = True
             if 'case_sensitive' in full_command:
                 self.command_case_sensitive = full_command['case_sensitive']
+
+            # if there is default value
+            if 'default_value' in full_command:
+                self.command_default_value = full_command['default_value']
+
+            # if there is an character replacement
+            if 'character_replacement' in full_command:
+                self.command_character_replacement = full_command['character_replacement']
 
             # cleaning up old messages
             self.cleanup_input_command()

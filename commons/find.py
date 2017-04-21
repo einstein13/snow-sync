@@ -16,3 +16,10 @@ def list_dict_find(list_of_dicts, name_to_find=None):
     except:
         pass
     return [0, list_of_dicts[0]]
+
+def remove_from_list(list, name):
+    if name in list:
+        list.remove(name)
+        return 1
+    return 0
+
