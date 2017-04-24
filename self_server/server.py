@@ -30,6 +30,11 @@ class Server(ThreadCommons, ServerCommands):
             "  read_settings - read chosen settings from recorded file",
             "  add_settings - add new settings to recorded file",
             "  delete_settings - delete chosen settings from recorded file",
+            "FILES:",
+            "  show_files - show list of files within configuration",
+            "  add_files - add new file to the configuration",
+            "  delete_files - delete existing file record from the configuration",
+            "  truncate_files - delete all records from the configuration",
             "SYNCHRO:",
             "  pull - get all files from the server",
             "  push - update files on the server"
@@ -75,9 +80,11 @@ class Server(ThreadCommons, ServerCommands):
 
     # interpreting commands
     def run_command(self, command):
+        splitted = command.split(" ")
         if command == 'exit':
             self.exit_all()
-        elif command.split(" ")[0] == 'read_settings':
+        elif splitted[0] == 'read_settings' or\
+                (splitted[0] == 'read' and splitted[1] == 'settings'):
             self.read_settings(command)
         elif command == "pull":
             self.pull_all_files(command)
@@ -89,6 +96,16 @@ class Server(ThreadCommons, ServerCommands):
             self.add_settings(command)
         elif command == "show_settings" or command == "show settings":
             self.show_settings(command)
+        elif command == "delete_settings" or command == "delete settings":
+            self.delete_settings(command)
+        elif command == "add_files" or command == "add files":
+            self.add_files(command)
+        elif command == "show_files" or command == "show files":
+            self.show_files(command)
+        elif command == "delete_files" or command == "delete files":
+            self.delete_files(command)
+        elif command == "truncate_files" or command == "truncate files":
+            self.truncate_files(command)
         else:
             self.push_unknown_command(command)
         return

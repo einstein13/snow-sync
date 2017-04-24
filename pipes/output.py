@@ -112,8 +112,8 @@ class DataPrint(object):
         self.print(line_to_print)
 
         # print body
-        line_to_print = ""
         for itr1 in range(1, len(data)):
+            line_to_print = ""
             row = data[itr1]
             for itr2 in range(len(row)):
                 element = row[itr2]

@@ -5,4 +5,10 @@
         "instance_name": "dev30036",
         "instance_url": "https://dev30036.service-now.com/"
     }
+    {
+        "instance_url": "https://dev20351.service-now.com/",
+        "authorization": "YWRtaW46RWluc3RlaW4uMTM=",
+        "instance_name": "dev20351",
+        "name": "geneva"
+    }
 ]
