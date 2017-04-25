@@ -139,7 +139,7 @@ class ServerCommands(FileSystem, Connection):
         confirm = ['yes', 'y', 'true', 't']
         reject = ['false', 'f', 'no', 'n']
         available_options = confirm + reject
-        confirmation = self.get_user_input(string, options=available_options)
+        confirmation = self.get_user_input(string, options=available_options, typ="commmon_switch")
 
         # reject deletion
         if confirmation in reject:
@@ -177,6 +177,8 @@ class ServerCommands(FileSystem, Connection):
         if self.settings == {}:
             self.push_output(self.no_settings_defined)
             return
+
+
         return
 
     def delete_files(self, command):

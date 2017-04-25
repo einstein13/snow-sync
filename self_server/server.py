@@ -62,6 +62,8 @@ class Server(ThreadCommons, ServerCommands):
         if typ is not None:
             if typ == 'password':
                 data_to_input['character_replacement'] = '*'
+            elif typ == 'commmon_switch':
+                data_to_input['case_sensitive'] = False
 
         answer = self.get_input_data(data_to_input)
 
