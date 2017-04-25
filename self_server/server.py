@@ -119,5 +119,7 @@ class Server(ThreadCommons, ServerCommands):
         return
 
     def run(self):
+        self.initialize_servers_json()
+        self.initialize_projects_home()
         self.show_starting_screen()
         return super(Server, self).run()

@@ -13,10 +13,11 @@ class FileSystem(object):
     
     # paths
     def get_project_path(self):
-        basic_folder_name = "snow-sync"
+        basic_folder_names = ["snow-sync", "snow-sync-master"]
         file_path = path.abspath(__file__)
         folder_path = file_path
-        while not folder_path.endswith(basic_folder_name):
+        while len(folder_path.split("\\")) > 0 and \
+                    folder_path.split("\\")[-1] not in basic_folder_names:
             old_path = folder_path
             folder_path = path.abspath(path.join(folder_path, pardir))
             if old_path == folder_path:
@@ -28,7 +29,7 @@ class FileSystem(object):
         project_path = self.get_project_path()
         if project_path is None:
             return None
-        folder_path = path.abspath(path.join(folder_path, pardir))
+        folder_path = path.abspath(path.join(project_path, pardir))
         return folder_path
 
     def get_settings_folder_path(self, name):
@@ -38,8 +39,15 @@ class FileSystem(object):
         return folder_path
 
     # initialize program enviroment
-    def create_servers_json(self):
-        self.override_servers_settings_file("[\n]")
+    def initialize_servers_json(self):
+        project_path = self.get_project_path()
+        file_path = path.join(project_path, self.standard_paths['settings_folder'])
+        file_path = path.join(file_path, self.standard_paths['servers_list'])
+
+        if not path.exists(file_path):
+            file = open(file_path, "w")
+            file.write("[\n]")
+            file.close()
         return
 
     def initialize_projects_home(self):
@@ -54,7 +62,7 @@ class FileSystem(object):
     # all servers file
     def override_servers_settings_file(self, string_data):
         project_path = self.get_project_path()
-        file_path = path.join(project_path, "settings")
+        file_path = path.join(project_path, self.standard_paths['settings_folder'])
         file_path = path.join(file_path, self.standard_paths['servers_list'])
         file = open(file_path, "w")
         file.write(string_data)
