@@ -7,6 +7,7 @@ except:
         file = open("servers.json", "r")
     except:
         print("OPEN ERROR")
+
 to_parse = file.read()
 file.close()
 servers = {}
