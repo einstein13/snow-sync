@@ -75,7 +75,7 @@ class FileSystem(object):
     def remove_settings_folder(self, name):
         project_path = self.get_project_path()
         folder_path = path.join(project_path, self.standard_paths['settings_folder'])
-        folder_path = path.join(file_path, name)
+        folder_path = path.join(folder_path, name)
         try:
             rmtree(folder_path)
         except:

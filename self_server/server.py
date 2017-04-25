@@ -96,7 +96,7 @@ class Server(ThreadCommons, ServerCommands):
             self.add_settings(command)
         elif command == "show_settings" or command == "show settings":
             self.show_settings(command)
-        elif command == "delete_settings" or command == "delete settings":
+        elif command.startswith("delete_settings") or command.startswith("delete settings"):
             self.delete_settings(command)
         elif command == "add_files" or command == "add files":
             self.add_files(command)

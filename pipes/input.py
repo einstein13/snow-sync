@@ -185,7 +185,7 @@ class Input(ThreadCommons):
 
             # possible messages
             if 'options' in full_command:
-                self.command_valid_list
+                self.command_valid_list = full_command['options']
                 self.command_valid_list.append('exit')
 
             # what if invalid message

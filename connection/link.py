@@ -3,17 +3,12 @@ from json import loads
 
 class Link(object):
 
-    headers = {"Content-Type":"application/json","Accept":"application/json"}
+    headers = {"Content-Type":"application/json", "Accept":"application/json"}
+    server_data = None
 
-    def __init__(self, server_name=None):
+    def __init__(self, server_data):
         super(Link, self).__init__()
-        from settings.servers import servers
-        self.server_data = servers[0]
-        if server_name is not None:
-            for server in servers:
-                if 'name' in server and server['name'] == server_name:
-                    self.server_data = server
-                    break
+        self.server_data = server_data
         return
 
     def connect(self, headers=None):
@@ -30,5 +25,6 @@ class Link(object):
         dict_result=loads(connection_result.decode("utf-8"))
         return dict_result
 
-
-        
+    def test_connection(self):
+        to_open="sys_properties_list.do"
+        url = self.server_data['']

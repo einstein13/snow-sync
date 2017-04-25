@@ -10,15 +10,31 @@ class DataPrint(object):
     input_command = ''
     flags = {
         'input_command_writing': False, # the command is being writing
-        'input_command_interrupted': False # the command finnished
+        'input_command_interrupted': False, # the command finnished
+        'input_command_written_sign': False # there was a single sign added
         }
 
-    def print(self, text, begin='', end="\n"):
+    def print(self, text, begin=None, end=None):
+        # default: ''
+        # or given begin
+        # or added '\n' when flag
+        new_begin = ''
+        if begin is not None:
+            new_begin = begin
+            self.flags['input_command_written_sign'] = False
+        elif self.flags['input_command_written_sign']:
+            new_begin = '\n'
+            self.flags['input_command_written_sign'] = False
+
+        new_end = '\n'
+        if end is not None:
+            new_end = end
+
         if type(text) is str:
-            print(begin + text, end=end)
+            print(new_begin + text, end=new_end)
         else:
             try:
-                print(begin + str(text), end=end)
+                print(new_begin + str(text), end=new_end)
             except:
                 print("Unable to print data")
         sys.stdout.flush()
@@ -36,10 +52,10 @@ class DataPrint(object):
         return
 
     def clean_comand_line(self, length):
-        self.print(chr(8)*length, end="")
+        self.print(chr(8)*length, begin='', end="")
         if not self.flags['input_command_interrupted']:
-            self.print(" "*length, end="")
-            self.print(chr(8)*length, end="")
+            self.print(" "*length, begin='', end="")
+            self.print(chr(8)*length, begin='', end="")
         return
 
     def abort_command(self, text):
@@ -47,7 +63,7 @@ class DataPrint(object):
         if self.flags['input_command_interrupted']:
             self.flags['input_command_writing'] = False
             self.flags['input_command_interrupted'] = False
-            self.print("\n", end="")
+            self.print("\n", begin='', end="")
             return
         # command wasn't interrupted
         self.clean_comand_line(len(text))
@@ -60,7 +76,8 @@ class DataPrint(object):
             self.clean_comand_line(1)
             return
         self.flags['input_command_writing'] = True
-        self.print(text, end="")
+        self.print(text, begin='', end="")
+        self.flags['input_command_written_sign'] = True
         return
 
     def write_full_command(self, text):
@@ -137,6 +154,9 @@ class DataPrint(object):
         return
 
     def print_data(self, data):
+        interrupt = True
+
+        # print switch
         if type(data) is str:
             self.print(data)
         elif type(data) is dict:
@@ -144,6 +164,7 @@ class DataPrint(object):
                 self.print(data['message'])
             elif data['type'] is 'command_sign':
                 self.write_command_sign(data['message'])
+                interrupt = False
             elif data['type'] is 'full_command':
                 self.write_full_command(data['message'])
             elif data['type'] is 'abort_command':
@@ -156,6 +177,10 @@ class DataPrint(object):
                 self.table_print(data['message'])
         else:
             self.print(data)
+
+        # change flags
+        if self.flags['input_command_writing'] and interrupt:
+            self.flags['input_command_interrupted'] = True
         return
 
 

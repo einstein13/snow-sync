@@ -5,8 +5,9 @@ from os import path, pardir
 from commons.find import list_dict_find, list_dict_find_by_name
 from commons.prints import pretty_json_print
 from .file_system import FileSystem
+from .connection import Connection
 
-class ServerCommands(FileSystem):
+class ServerCommands(FileSystem, Connection):
 
     settings = {}
     settings_files = []
@@ -31,7 +32,13 @@ class ServerCommands(FileSystem):
 
         found_settings = list_dict_find(servers, command_parts[1])
         self.settings = found_settings[1]
-        self.push_output(message_ok + " (%s, %s)" % (found_settings[0], found_settings[1]['name']))
+        self.push_output(message_ok + " (%s, %s)" % (found_settings[0], found_settings[1]['name']), typ="inset")
+
+        result = self.test_connection()
+        if result:
+            self.push_output("Connection OK", typ="inset")
+        else:
+            self.push_output("Connection failed", typ="inset")
         return
 
     def show_settings(self, command):
@@ -95,16 +102,33 @@ class ServerCommands(FileSystem):
         # add folder to settings
         self.create_settings_folder(name)
 
+        # test connection
+        test_result = self.test_connection(server_data=completed_data)
+        if test_result:
+            self.push_output("Connection OK", typ="inset")
+        else:
+            self.push_output("Connection is not working", typ="inset")
+
         return
 
     def delete_settings(self, command):
         from settings.servers import servers
+        splitted = command.split(" ")
 
-        # get needed info
-        name = self.get_user_input('Type settings name:')
+        # name
+        name = None
+        if splitted[0] == "delete_settings" and len(splitted) > 1:
+            name = splitted[1]
+        elif len(splitted) > 2:
+            name = splitted[2]
+        else:
+            name = self.get_user_input('Type settings name:')
+
         if name is None:
             self.abort_current_command(self.exit_current)
             return
+
+        # look for correct settings
         found_settings = list_dict_find_by_name(servers, name)
         if found_settings is None:
             self.push_output("Can't find any settings by given name (%s)." % name)
@@ -122,13 +146,14 @@ class ServerCommands(FileSystem):
             return
 
         # remove settings folder
-        self.remove_settings_folder(found_settings[1])
+        self.remove_settings_folder(found_settings[1]['name'])
 
         # delete from settings file
         servers.pop(found_settings[0])
         string_data = pretty_json_print(servers)
         self.override_servers_settings_file(string_data)
 
+        self.push_output("Settings removed successfully", typ="inset")
         return
 
     def show_files(self, commandd):
