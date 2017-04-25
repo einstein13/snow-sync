@@ -7,7 +7,8 @@ class FileSystem(object):
     standard_paths = {
         "settings_folder": "settings",
         "files_list": "files.json",
-        "servers_list": "servers.json"
+        "servers_list": "servers.json",
+        "projects_home": "projects"
         }
     
     # paths
@@ -35,6 +36,20 @@ class FileSystem(object):
         folder_path = path.join(project_path, self.standard_paths['settings_folder'])
         folder_path = path.join(folder_path, name)
         return folder_path
+
+    # initialize program enviroment
+    def create_servers_json(self):
+        self.override_servers_settings_file("[\n]")
+        return
+
+    def initialize_projects_home(self):
+        project_path = self.get_parent_project_path()
+        project_path = path.join(project_path, self.standard_paths['projects_home'])
+        if path.isdir(project_path):
+            return
+        makedirs(project_path)
+        return
+
 
     # all servers file
     def override_servers_settings_file(self, string_data):
