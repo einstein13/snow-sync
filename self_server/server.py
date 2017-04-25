@@ -64,6 +64,8 @@ class Server(ThreadCommons, ServerCommands):
                 data_to_input['character_replacement'] = '*'
             elif typ == 'commmon_switch':
                 data_to_input['case_sensitive'] = False
+            elif typ == 'case_sensitive':
+                data_to_input['case_sensitive'] = False
 
         answer = self.get_input_data(data_to_input)
 

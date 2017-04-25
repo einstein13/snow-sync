@@ -178,6 +178,48 @@ class ServerCommands(FileSystem, Connection):
             self.push_output(self.no_settings_defined)
             return
 
+        # type
+        business_rule = ["business rule", "business_rule", "businessrule" "br", "business"]
+        script_include = ["script include", "script_include", "scriptinclude", "si", "include"]
+        ui_policy = ["ui policy", "ui_policy", "uipolicy", "user interface policy", "user_interface_policy", "ui p", "uip", "ui_p", "policy"]
+        ui_action = ["ui action", "ui_action", "uiaction", "user interface action", "user_interface_action", "ui a", "uia", "ui_a", "action"]
+        data_policy = ["data policy", "data_policy", "datapolicy", "dp", "data"]
+        client_script = ["client script", "client_script", "clientscript", "cs", "client"]
+        custom = ["custom", "custom file", "custom_file", "customfile", "user defined", "user_defined", "userdefined"]
+
+        all_options = business_rule + script_include + ui_policy + ui_action + data_policy + client_script + custom
+
+        string = "[Business Rule/ Data Policy/ Script Include/ UI Policy/ UI Action/ Client Script /Custom]"
+        self.push_output(string)
+        string = "Choose record type:"
+        found_type = self.get_user_input(string, options=all_options, typ="commmon_switch")
+        if found_type is None:
+            return
+
+        # table
+        table = None
+
+        if found_type in custom:
+            table = self.get_user_input("Table name of the record:", typ="case_sensitive")
+            if table is None:
+                return
+        elif found_type in business_rule:
+            table = "sys_script"
+        elif found_type in script_include:
+            table = "sys_script_include"
+        elif found_type in ui_policy:
+            table = "catalog_ui_policy"
+        elif found_type in ui_action:
+            table = "sys_ui_action"
+        elif found_type in data_policy:
+            table = "sys_data_policy2"
+        elif found_type in client_script:
+            table = "sys_script_client"
+
+        # sys_id
+        
+
+
 
         return
 
