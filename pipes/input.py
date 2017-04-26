@@ -129,7 +129,6 @@ class Input(ThreadCommons):
 
     def copy_clipboard_to_input(self):
         clipboard = self.copy_from_clipboard()
-        self.push_output(clipboard, typ="pretty_text")
         for itr in range(len(clipboard)):
             sign = clipboard[itr]
             if ord(sign) in (3, 22, 27, 9, 8):
@@ -153,7 +152,6 @@ class Input(ThreadCommons):
                 # TO DO
                 pass
             elif ord(sign) == 22: # Ctrl + V
-                self.push_output("CONTROL + V")
                 self.copy_clipboard_to_input()
             elif ord(sign) == 27: # Esc
                 if self.input_command == '':
@@ -173,7 +171,6 @@ class Input(ThreadCommons):
         else:
             if ord(sign) == 13: # Enter
                 if self.input_command:
-                    self.push_output('\n', typ='command_sign')
                     if self.command_character_replacement is None:
                         self.push_output(self.input_command, typ='full_command')
                     self.push_answer()
@@ -189,7 +186,6 @@ class Input(ThreadCommons):
                 # TO DO
                 pass
             elif ord(sign) == 22: # Ctrl + V
-                self.push_output("CONTROL + V")
                 self.copy_clipboard_to_input()
             elif ord(sign) == 27: # Esc
                 if self.input_command != '':
@@ -225,7 +221,7 @@ class Input(ThreadCommons):
             # possible messages
             if 'options' in full_command:
                 self.command_valid_list = full_command['options']
-                self.command_valid_list.append('exit')
+                # self.command_valid_list.append('exit')
 
             # what if invalid message
             self.command_invalid_message = 'Invalid command, please try again or exit:'

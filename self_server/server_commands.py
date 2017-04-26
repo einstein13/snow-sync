@@ -3,7 +3,7 @@ from time import sleep
 from os import path, pardir
 
 from commons.find import list_dict_find, list_dict_find_by_name
-from commons.prints import pretty_json_print
+from commons.prints import pretty_json_print, dict_to_list, generate_standard_data_file_content, fix_newline_signs
 from .file_system import FileSystem
 from .connection import Connection
 
@@ -101,6 +101,7 @@ class ServerCommands(FileSystem, Connection):
 
         # add folder to settings
         self.create_settings_folder(name)
+        self.initialize_files_folder(name)
 
         # test connection
         test_result = self.test_connection(server_data=completed_data)
@@ -179,7 +180,7 @@ class ServerCommands(FileSystem, Connection):
             return
 
         # type
-        business_rule = ["business rule", "business_rule", "businessrule" "br", "business"]
+        business_rule = ["business rule", "business_rule", "businessrule", "br", "business"]
         script_include = ["script include", "script_include", "scriptinclude", "si", "include"]
         ui_policy = ["ui policy", "ui_policy", "uipolicy", "user interface policy", "user_interface_policy", "ui p", "uip", "ui_p", "policy"]
         ui_action = ["ui action", "ui_action", "uiaction", "user interface action", "user_interface_action", "ui a", "uia", "ui_a", "action"]
@@ -217,9 +218,89 @@ class ServerCommands(FileSystem, Connection):
             table = "sys_script_client"
 
         # sys_id
+        sys_id = self.get_user_input("Record sys_id:")
+        if sys_id is None:
+            return
+
+        record_data = self.connect_api(table, sys_id=sys_id)
+        if record_data is None:
+            self.push_output("Error occured while reading remote files", typ="inset")
+            return
+        result_data = record_data['result']
+
+        scripts_list = []
+            # list of fields
+                # [field, file_name]
+        fields_list = []
+            # list of fields
+                # string - base group
+                # [name_of_field, additional_comment, field_data]
+        record_name = None
+        record_type = None
+
+        # commonly used values
+        boolean = "[true/false]"
+
+        if found_type in custom:
+            self.push_output("List of all downloaded elements:")
+            elements = [["name", "value"]]
+            elements = dict_to_list(result_data, elements)
+            self.push_output(elements, typ="table")
+
+            record_type = "custom"
+            # TO DO !!!
+            # scripts?
+            # what to save?
+            # comments?
+
+        elif found_type in business_rule:
+            record_type = self.standard_paths['files_business_rule']
+            record_name = result_data['name']
+            scripts_list = [
+                ["script", "script.js"]
+                ]
+            fields_list = [
+                    "Basic",
+                    ["Name", "", "name"],
+                    ["Application", "(read only!)", "sys_scope.value"],
+                    ["Table", "", "collection"],
+                    ["Active", boolean, "active"],
+                    ["Advanced", boolean, "advanced"],
+                    "When to run",
+                    ["When", "[before/ after/ async/ display]", "when"],
+                    ["Order", "(integer)", "order"],
+                    ["Insert", boolean, "action_insert"],
+                    ["Update", boolean, "action_update"],
+                    ["Delete", boolean, "action_delete"],
+                    ["Query", boolean, "action_query"],
+                    # FILTER CONDITIONS
+                    # ROLE CONDITIONS
+                    "Actions",
+                    ["Set field values", "(use ServiceNow template language)", "template"],
+                    ["Add message", boolean, "add_message"],
+                    ["Abort action", boolean, "abort_action"],
+                    "Advanced",
+                    ["Condition", "", "condition"]
+                ]
+
+        if record_name is None:
+            return
         
+        # create storage folder
+        self.create_record_folder(record_type, record_name)
 
+        # create scripts files
+        if len(scripts_list) > 0:
+            for row in scripts_list:
+                string_data = fix_newline_signs(result_data[row[0]])
+                data = [record_type, record_name, row[1], string_data]
+                self.override_record_file(data)
 
+        # create data file
+        if len(fields_list) > 0:
+            file_content = generate_standard_data_file_content(result_data, fields_list)
+            data = [record_type, record_name, self.standard_paths['file_standard_file'], file_content]
+            self.override_record_file(data)
 
         return
 

@@ -181,6 +181,7 @@ class DataPrint(object):
         # change flags
         if self.flags['input_command_writing'] and interrupt:
             self.flags['input_command_interrupted'] = True
+
         return
 
 
