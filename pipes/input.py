@@ -110,6 +110,33 @@ class Input(ThreadCommons):
         self.general_data['server_queue'].append('exit_current_command')
         return
 
+    def copy_from_clipboard(self):
+        # http://stackoverflow.com/questions/16188160/how-to-read-data-from-clipboard-and-pass-it-as-value-to-a-variable-in-python/16189232#16189232
+        try:
+            # Python2
+            import Tkinter as tk
+        except ImportError:
+            # Python3
+            import tkinter as tk
+
+        root = tk.Tk()
+        # keep the window from showing
+        root.withdraw()
+
+        # read the clipboard
+        result = root.clipboard_get()
+        return result
+
+    def copy_clipboard_to_input(self):
+        clipboard = self.copy_from_clipboard()
+        self.push_output(clipboard, typ="pretty_text")
+        for itr in range(len(clipboard)):
+            sign = clipboard[itr]
+            if ord(sign) in (3, 22, 27, 9, 8):
+                # special characters
+                continue
+            self.interpret_sign(sign)
+
     # reaction switch
     def interpret_sign(self, sign):
 
@@ -122,6 +149,12 @@ class Input(ThreadCommons):
                     self.push_output("", typ="text")
             elif ord(sign) == 9: # Tab
                 self.autofill_command()
+            elif ord(sign) == 3: # Ctrl + C
+                # TO DO
+                pass
+            elif ord(sign) == 22: # Ctrl + V
+                self.push_output("CONTROL + V")
+                self.copy_clipboard_to_input()
             elif ord(sign) == 27: # Esc
                 if self.input_command == '':
                     # What should be done?
@@ -152,6 +185,12 @@ class Input(ThreadCommons):
             elif ord(sign) == 9: # Tab
                 # TO DO
                 pass
+            elif ord(sign) == 3: # Ctrl + C
+                # TO DO
+                pass
+            elif ord(sign) == 22: # Ctrl + V
+                self.push_output("CONTROL + V")
+                self.copy_clipboard_to_input()
             elif ord(sign) == 27: # Esc
                 if self.input_command != '':
                     self.abort_written_command()
