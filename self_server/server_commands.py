@@ -3,7 +3,8 @@ from time import sleep
 from os import path, pardir
 
 from commons.find import list_dict_find, list_dict_find_by_name
-from commons.prints import pretty_json_print, dict_to_list, generate_standard_data_file_content, fix_newline_signs
+from commons.prints import pretty_json_print, dict_to_list, generate_standard_data_file_content,\
+        fix_newline_signs, generate_hash
 from .file_system import FileSystem
 from .connection import Connection
 
@@ -39,9 +40,11 @@ class ServerCommands(FileSystem, Connection):
             self.push_output("Connection OK", typ="inset")
         else:
             self.push_output("Connection failed", typ="inset")
+        self.exit_ok = True
         return
 
     def show_settings(self, command):
+        self.exit_silence = True
         from settings.servers import servers
         elements = [['No', 'name', 'url']]
         for itr in range(len(servers)):
@@ -110,6 +113,7 @@ class ServerCommands(FileSystem, Connection):
         else:
             self.push_output("Connection is not working", typ="inset")
 
+        self.exit_ok = True
         return
 
     def delete_settings(self, command):
@@ -137,13 +141,14 @@ class ServerCommands(FileSystem, Connection):
 
         # confirm deletion
         string = "Confirm deletion of \"" + name + "\" settings (yes/no):"
-        confirm = ['yes', 'y', 'true', 't']
-        reject = ['false', 'f', 'no', 'n']
+        confirm = ['yes', 'y', 'true', 't', 'tak']
+        reject = ['false', 'f', 'no', 'n', 'nie']
         available_options = confirm + reject
-        confirmation = self.get_user_input(string, options=available_options, typ="commmon_switch")
+        confirmation = self.get_user_input(string, invalid_message="Give yes/no answer:", options=available_options, typ="commmon_switch")
 
         # reject deletion
         if confirmation in reject:
+            self.exit_ok = True
             return
 
         # remove settings folder
@@ -154,7 +159,12 @@ class ServerCommands(FileSystem, Connection):
         string_data = pretty_json_print(servers)
         self.override_servers_settings_file(string_data)
 
+        # delete from memory (if matches)
+        if self.settings and self.settings['name'] == name:
+            self.settings = {}
+
         self.push_output("Settings removed successfully", typ="inset")
+        self.exit_ok = True
         return
 
     def show_files(self, commandd):
@@ -162,6 +172,7 @@ class ServerCommands(FileSystem, Connection):
             self.push_output(self.no_settings_defined)
             return
 
+        self.exit_silence = True
         files = self.get_settings_files_list()
         records = [["No.", "type", "name", "table", "sys_id"]]
         for itr in range(len(files)):
@@ -235,6 +246,11 @@ class ServerCommands(FileSystem, Connection):
             # list of fields
                 # string - base group
                 # [name_of_field, additional_comment, field_data]
+        saved_hashes = []
+            # list of saved hashes of files (just to check if the files were modified)
+                # [field, file, hash]
+
+
         record_name = None
         record_type = None
 
@@ -295,13 +311,30 @@ class ServerCommands(FileSystem, Connection):
                 string_data = fix_newline_signs(result_data[row[0]])
                 data = [record_type, record_name, row[1], string_data]
                 self.override_record_file(data)
+                # save hash
+                hashed = generate_hash(string_data)
+                saved_hashes.append([row[0], row[1], hashed])
 
         # create data file
         if len(fields_list) > 0:
             file_content = generate_standard_data_file_content(result_data, fields_list)
             data = [record_type, record_name, self.standard_paths['file_standard_file'], file_content]
             self.override_record_file(data)
+            # save hash
+            hashed = generate_hash(file_content)
+            saved_hashes.append(['__all_fields__', self.standard_paths['file_standard_file'], hashed])
 
+        # create custom project settings
+        record_settings = {
+            'type': record_type,
+            'name': record_name,
+            'table': table,
+            'sys_id': sys_id,
+            'hashed_data': saved_hashes
+        }
+        self.add_files_settings(record_settings)
+
+        self.exit_ok = True
         return
 
     def delete_files(self, command):
@@ -333,6 +366,7 @@ class ServerCommands(FileSystem, Connection):
 
     # exiting program
     def exit_all(self):
+        self.exit_silence = True
         self.push_output("Exiting program", typ="pretty_text")
         sleep(0.05)
         self.general_data['running'] = False
@@ -340,4 +374,5 @@ class ServerCommands(FileSystem, Connection):
 
     def push_unknown_command(self, command):
         self.push_output("Unknown command: " + command)
+        self.exit_silence = True
         return

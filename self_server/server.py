@@ -7,6 +7,11 @@ from .server_commands import ServerCommands
 
 class Server(ThreadCommons, ServerCommands):
 
+    exit_message_error = "Command exited with error"
+    exit_message_ok = "Command exited correctly"
+    exit_ok = False
+    exit_silence = False
+
     def __init__(self, inp, out, gen_dat):
         super(Server, self).__init__(inp, out, gen_dat)
         self.settings = {}
@@ -19,6 +24,7 @@ class Server(ThreadCommons, ServerCommands):
         return
 
     def show_help(self, command):
+        self.exit_silence = True
         command_parts = command.split(" ")
         help_text = " ".join(command_parts[1:])
         all_known_commands = [
@@ -48,12 +54,12 @@ class Server(ThreadCommons, ServerCommands):
         return
 
     # user commands
-    def get_user_input(self, question, command=None, default=None, options=[], typ=None):
+    def get_user_input(self, question, invalid_message=None, default=None, options=[], typ=None):
         self.push_output(question)
 
         data_to_input = {'command': question}
-        if command is not None:
-            data_to_input['command'] = command
+        if invalid_message is not None:
+            data_to_input['invalid_message'] = invalid_message
         if len(options) > 0:
             data_to_input['options'] = options
         if default is not None:
@@ -71,6 +77,20 @@ class Server(ThreadCommons, ServerCommands):
 
         return answer
 
+    def initiate_exit_message(self):
+        self.exit_type = False
+        self.exit_silence = False
+        return
+
+    def print_exit_message(self):
+        if self.exit_silence:
+            return
+        if self.exit_ok is True:
+            self.push_output(self.exit_message_ok, typ="inset")
+            return
+        self.push_output(self.exit_message_error, typ="inset")
+        return
+
     # handling with server input queue
     def remove_first_input(self):
         if len(self.general_data['server_queue']) > 0:
@@ -84,7 +104,9 @@ class Server(ThreadCommons, ServerCommands):
 
     # interpreting commands
     def run_command(self, command):
+        self.initiate_exit_message()
         splitted = command.split(" ")
+
         if command == 'exit':
             self.exit_all()
         elif splitted[0] == 'read_settings' or\
@@ -112,6 +134,8 @@ class Server(ThreadCommons, ServerCommands):
             self.truncate_files(command)
         else:
             self.push_unknown_command(command)
+
+        self.print_exit_message()
         return
 
     def run_thread(self):

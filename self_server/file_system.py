@@ -2,6 +2,9 @@ from json import loads
 from os import path, pardir, makedirs
 from shutil import rmtree
 
+from commons.find import list_dict_find_by_name
+from commons.prints import pretty_json_print
+
 class FileSystem(object):
 
     standard_paths = {
@@ -41,10 +44,15 @@ class FileSystem(object):
         folder_path = path.abspath(path.join(project_path, pardir))
         return folder_path
 
-    def get_settings_folder_path(self, name):
+    def get_settings_folder_path(self, name=None):
         project_path = self.get_project_path()
         folder_path = path.join(project_path, self.standard_paths['settings_folder'])
-        folder_path = path.join(folder_path, name)
+        new_name = name
+        if new_name is None:
+            if self.settings is None:
+                return None
+            new_name = self.settings['name']
+        folder_path = path.join(folder_path, new_name)
         return folder_path
 
     def get_files_folder_path(self, name=None):
@@ -126,16 +134,31 @@ class FileSystem(object):
         return
 
     # server folder & files
-    def create_settings_folder(self, name):
-        folder_path = self.get_settings_folder_path(name)
-        file_path = path.join(folder_path, self.standard_paths['files_list'])
+    def create_settings_folder(self, name=None):
+        new_name = name
+        if new_name is None:
+            new_name = self.settings['name']
+
+        folder_path = self.get_settings_folder_path(new_name)
         try:
             makedirs(folder_path)
-            file = open(file_path, "w")
-            file.write("[\n]")
-            file.close()
+            self.override_settings_file([], name=name)
         except:
             self.push_output("There was a problem with creating settings path")
+        return
+
+    def override_settings_file(self, data, name=None):
+        new_name = name
+        if new_name is None:
+            new_name = self.settings['name']
+
+        folder_path = self.get_settings_folder_path(new_name)
+        file_path = path.join(folder_path, self.standard_paths['files_list'])
+
+        file = open(file_path, "w")
+        string_data = pretty_json_print(data)
+        file.write(string_data)
+        file.close()
         return
 
     def get_settings_files_list(self):
@@ -199,4 +222,14 @@ class FileSystem(object):
         file = open(new_path, "w")
         file.write(file_data[3])
         file.close()
+        return
+
+    def add_files_settings(self, new_data):
+        files_list = self.get_settings_files_list()
+        found = list_dict_find_by_name(files_list, new_data['name'])
+        if found is not None:
+            files_list[found[0]] = new_data
+        else:
+            files_list.append(new_data)
+        self.override_settings_file(files_list)
         return

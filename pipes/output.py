@@ -56,6 +56,10 @@ class DataPrint(object):
         if not self.flags['input_command_interrupted']:
             self.print(" "*length, begin='', end="")
             self.print(chr(8)*length, begin='', end="")
+        if len(self.input_command) < length:
+            self.input_command = ""
+        else:
+            self.input_command = self.input_command[:len(self.input_command)-length]
         return
 
     def abort_command(self, text):
@@ -78,9 +82,19 @@ class DataPrint(object):
         self.flags['input_command_writing'] = True
         self.print(text, begin='', end="")
         self.flags['input_command_written_sign'] = True
+        special_characters = [
+            chr(13), # Enter
+            chr(9), # Tab
+            chr(27), # Esc
+            chr(8) # Backspace
+            ]
+        if text not in special_characters:
+            self.input_command += text
         return
 
     def write_full_command(self, text):
+        self.input_command = ''
+
         # command wasn't written at all
         if not self.flags['input_command_writing']:
             self.print(text)

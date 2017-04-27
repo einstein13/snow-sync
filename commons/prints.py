@@ -1,4 +1,5 @@
 from json import dumps
+from hashlib import sha1
 
 def pretty_json_print(data):
     string = dumps(data, indent=4)
@@ -66,3 +67,7 @@ def generate_standard_data_file_content(data_dictionary, data_content):
 
             result += "\n"
     return result
+
+def generate_hash(string):
+    hashed = sha1(string.encode("utf-8"))
+    return hashed.hexdigest()

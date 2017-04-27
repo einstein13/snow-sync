@@ -173,12 +173,13 @@ class Input(ThreadCommons):
                 if self.input_command:
                     if self.command_character_replacement is None:
                         self.push_output(self.input_command, typ='full_command')
-                    self.push_answer()
+                    else:
+                        self.push_output("", typ="full_command")
                 elif self.command_default_value:
                     if self.command_character_replacement is None:
                         self.push_output(self.command_default_value, typ='full_command')
                     self.input_command = self.command_default_value
-                    self.push_answer()
+                self.push_answer() # push answer to the input object
             elif ord(sign) == 9: # Tab
                 # TO DO
                 pass
