@@ -5,17 +5,20 @@ def pretty_json_print(data):
     string = dumps(data, indent=4)
     return string
 
-def shorten_string(string, length=40):
-    if len(string) < length:
-        return string
-    return string[:length-3] + "..."
-
 def fix_newline_signs(string):
     new_string = string
     new_string = new_string.replace("\r\n", "\n")
     new_string = new_string.replace("\n\r", "\n")
     new_string = new_string.replace("\r", "\n")
     return new_string
+
+def shorten_string(string, length=40):
+    new_string = fix_newline_signs(string)
+    new_string = new_string.replace("\n", " \\n")
+    new_string = new_string.replace("\t", "  ")
+    if len(new_string) < length:
+        return new_string
+    return new_string[:length-3] + "..."
 
 # generates list from dictionary, used for diplaying table form of dicts
 def dict_to_list(dictionary, records=[], name_start=None):
@@ -54,16 +57,23 @@ def generate_standard_data_file_content(data_dictionary, data_content):
         if type(row) is str:
             result += "# " + row + "\n"
         elif type(row) is list:
-            result += indent + "# " + row[0] + "\n"
-            # handle with no additional comment
-            if row[1]:
-                result += indent + "# " + row[1] + "\n"
-            # handle with dot-walking
-            splitted = row[2].split(".")
-            to_add = dict(data_dictionary)
-            for key in splitted:
-                to_add = to_add[key]
-            result += indent + row[2] + " = " + to_add + "\n"
+            comments = True
+            for element in row:
+                if element == "":
+                    comments = False
+                    # ends of comments
+                else:
+                    if comments:
+                        # add comment
+                        result += indent + "# " + element + "\n"
+                    else:
+                        # add variable
+                        # handle with dot-walking
+                        splitted = element.split(".")
+                        to_add = dict(data_dictionary)
+                        for key in splitted:
+                            to_add = to_add[key]
+                        result += indent + element + " = " + to_add + "\n"
 
             result += "\n"
     return result

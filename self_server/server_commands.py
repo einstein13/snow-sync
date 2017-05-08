@@ -190,19 +190,46 @@ class ServerCommands(FileSystem, Connection):
             self.push_output(self.no_settings_defined)
             return
 
-        # type
+        # known types
+            # general
         business_rule = ["business rule", "business_rule", "businessrule", "br", "business"]
-        script_include = ["script include", "script_include", "scriptinclude", "si", "include"]
-        ui_policy = ["ui policy", "ui_policy", "uipolicy", "user interface policy", "user_interface_policy", "ui p", "uip", "ui_p", "policy"]
-        ui_action = ["ui action", "ui_action", "uiaction", "user interface action", "user_interface_action", "ui a", "uia", "ui_a", "action"]
         data_policy = ["data policy", "data_policy", "datapolicy", "dp", "data"]
+        script_include = ["script include", "script_include", "scriptinclude", "si", "include"]
         client_script = ["client script", "client_script", "clientscript", "cs", "client"]
+            # System UI
+        ui_policy = ["ui policy", "ui_policy", "uipolicy", "user interface policy",
+                "user_interface_policy", "policy", "ui_pol", "ui pol"]
+        ui_action = ["ui action", "ui_action", "uiaction", "user interface action",
+                "user_interface_action", "action", "ui"]
+        ui_page = ["ui page", "ui_page", "uipage", "user interface page", "user_interface_page",
+                "page", "ui_pag", "ui pag"]
+        ui_macro = ["ui macro", "ui_macro", "uimacro", "user interface macro", "user_interface_macro",
+                "macro", "ui_mac", "ui mac"]
+        ui_script = ["ui script", "ui_script", "uiscript", "user interface script",
+                "user_interface_script", "script", "ui_sc", "ui sc"]
+        ui_context_menu = ["ui context menu", "ui_context_menu", "uicontextmenu",
+                "user interface context menu", "user_interface_context_menu", "context menu",
+                "context_menu", "ui_cm", "ui cm"]
+            # Service Catalog
+        catalog_ui_policy = ["catalog ui policy", "catalog_ui_policy", "cat ui policy", "cat_ui_policy",
+                "catalog user interface policy", "catalog_user_interface_policy", "catalog policy",
+                "catalog_policy", "cat_ui_pol", "cat ui pol", "cataloguipolicy"]
+        catalog_client_script = ["catalog client script", "catalog_client_script", "catalogclientscript",
+                "cat cs", "cat_cs", "cat client", "cat_client", "catalog client", "catalog_client"]
+            # Other
         custom = ["custom", "custom file", "custom_file", "customfile", "user defined", "user_defined", "userdefined"]
 
-        all_options = business_rule + script_include + ui_policy + ui_action + data_policy + client_script + custom
+        all_options = business_rule + data_policy + script_include + client_script
+        all_options += ui_policy + ui_action + ui_page + ui_macro + ui_script + ui_context_menu
+        all_options += catalog_ui_policy + catalog_client_script + custom
 
-        string = "[Business Rule/ Data Policy/ Script Include/ UI Policy/ UI Action/ Client Script /Custom]"
-        self.push_output(string)
+        strings = [
+            "[Business Rule/ Data Policy/ Script Include/ Client Script /",
+            "UI Policy / UI Action / UI Page / UI Macro / UI Script / UI Context Menu /",
+            "Catalog UI Policy / Catalog Client Script / Custom]",
+            ]
+        for string in strings:
+            self.push_output(string)
         string = "Choose record type:"
         found_type = self.get_user_input(string, options=all_options, typ="commmon_switch")
         if found_type is None:
@@ -217,22 +244,35 @@ class ServerCommands(FileSystem, Connection):
                 return
         elif found_type in business_rule:
             table = "sys_script"
-        elif found_type in script_include:
-            table = "sys_script_include"
-        elif found_type in ui_policy:
-            table = "catalog_ui_policy"
-        elif found_type in ui_action:
-            table = "sys_ui_action"
         elif found_type in data_policy:
             table = "sys_data_policy2"
+        elif found_type in script_include:
+            table = "sys_script_include"
         elif found_type in client_script:
             table = "sys_script_client"
+        elif found_type in ui_policy:
+            table = "sys_ui_policy"
+        elif found_type in ui_action:
+            table = "sys_ui_action"
+        elif found_type in ui_page:
+            table = "sys_ui_page"
+        elif found_type in ui_macro:
+            table = "sys_ui_macro"
+        elif found_type in ui_script:
+            table = "sys_ui_script"
+        elif found_type in ui_context_menu:
+            table = "sys_ui_context_menu"
+        elif found_type in catalog_ui_policy:
+            table = "catalog_ui_policy"
+        elif found_type in catalog_client_script:
+            table = "catalog_script_client"
 
         # sys_id
         sys_id = self.get_user_input("Record sys_id:")
         if sys_id is None:
             return
 
+        # downloaded data
         record_data = self.connect_api(table, sys_id=sys_id)
         if record_data is None:
             self.push_output("Error occured while reading remote files", typ="inset")
@@ -250,12 +290,14 @@ class ServerCommands(FileSystem, Connection):
             # list of saved hashes of files (just to check if the files were modified)
                 # [field, file, hash]
 
-
+        # information to save
         record_name = None
         record_type = None
 
         # commonly used values
-        boolean = "[true/false]"
+        comment_boolean = "[true/false]"
+        comment_read_only = "(read only!)"
+        comment_integer = "(integer)"
 
         if found_type in custom:
             self.push_output("List of all downloaded elements:")
@@ -268,35 +310,253 @@ class ServerCommands(FileSystem, Connection):
             # scripts?
             # what to save?
             # comments?
-
         elif found_type in business_rule:
             record_type = self.standard_paths['files_business_rule']
             record_name = result_data['name']
             scripts_list = [
-                ["script", "script.js"]
+                    ["script", "script.js"]
                 ]
             fields_list = [
                     "Basic",
                     ["Name", "", "name"],
-                    ["Application", "(read only!)", "sys_scope.value"],
+                    ["Application", comment_read_only, "", "sys_scope.value"],
                     ["Table", "", "collection"],
-                    ["Active", boolean, "active"],
-                    ["Advanced", boolean, "advanced"],
+                    ["Active", comment_boolean, "", "active"],
+                    ["Advanced", comment_boolean, "", "advanced"],
                     "When to run",
-                    ["When", "[before/ after/ async/ display]", "when"],
-                    ["Order", "(integer)", "order"],
-                    ["Insert", boolean, "action_insert"],
-                    ["Update", boolean, "action_update"],
-                    ["Delete", boolean, "action_delete"],
-                    ["Query", boolean, "action_query"],
+                    ["When", "[before/ after/ async/ display]", "", "when"],
+                    ["Order", comment_integer, "", "order"],
+                    ["Insert", comment_boolean, "", "action_insert"],
+                    ["Update", comment_boolean, "", "action_update"],
+                    ["Delete", comment_boolean, "", "action_delete"],
+                    ["Query", comment_boolean, "", "action_query"],
                     # FILTER CONDITIONS
                     # ROLE CONDITIONS
                     "Actions",
-                    ["Set field values", "(use ServiceNow template language)", "template"],
-                    ["Add message", boolean, "add_message"],
-                    ["Abort action", boolean, "abort_action"],
+                    ["Set field values", "(use ServiceNow template language)", "", "template"],
+                    ["Add message", comment_boolean, "", "add_message"],
+                    ["Abort action", comment_boolean, "", "abort_action"],
                     "Advanced",
                     ["Condition", "", "condition"]
+                ]
+        elif found_type in data_policy:
+            record_type = self.standard_paths['files_data_policy']
+            record_name = result_data['sys_name']
+            scripts_list = [
+                    ["description", "description.txt"]
+                ]
+            fields_list = [
+                    "Basic",
+                    ["Table", "", "model_table"],
+                    ["Inherit", comment_boolean, "", "inherit"],
+                    ["Reverse if false", comment_boolean, "", "reverse_if_false"],
+                    ["Active", comment_boolean, "", "active"],
+                    ["Application", comment_read_only, "", "sys_scope.value"],
+                    ["Apply to import sets", comment_boolean, "", "apply_import_set"],
+                    ["Apply to SOAP", comment_boolean, "", "apply_soap"],
+                    ["Use as UI Policy on client", comment_boolean, "", "enforce_ui"],
+                    ["Short description", "", "short_description"]
+                    # CONDITIONS?
+                ]
+        elif found_type in script_include:
+            record_type = self.standard_paths['files_script_include']
+            record_name = result_data['name']
+            scripts_list = [
+                    ["description", "description.txt"],
+                    ["script", "script.js"]
+                ]
+            fields_list = [
+                    "Basic",
+                    ["Name", "", "name"],
+                    ["API Name", comment_read_only, "", "api_name"],
+                    ["Client callable", comment_boolean, "", "client_callable"],
+                    ["Application", comment_read_only, "", "sys_scope.value"],
+                    ["Accessible from", "[public / package_private]", "", "access"],
+                    ["Active", comment_boolean, "", "active"],
+                    ["Protection policy", comment_read_only, "", "sys_policy"]
+                ]
+        elif found_type in client_script:
+            record_type = self.standard_paths['files_client_script']
+            record_name = result_data['name']
+            scripts_list = [
+                    ["description", "description.txt"],
+                    ["messages", "messages.txt"],
+                    ["script", "script.js"]
+                ]
+            fields_list = [
+                    "Basic",
+                    ["Name", "", "name"],
+                    ["Table", "", "table"],
+                    ["UI Type", "[0-Desktop, 1-Mobile, 10-Both]", "", "ui_type"],
+                    ["Type", "[onCellEdit / onChange / onLoad / onSubmit]", "", "type"],
+                    ["Application", comment_read_only, "", "sys_scope.value"],
+                    ["Active", comment_boolean, "", "active"],
+                    ["Inherited", comment_boolean, "", "applies_extended"],
+                    ["Global", comment_boolean, "", "global"]
+                ]
+        elif found_type in ui_policy:
+            record_type = self.standard_paths['files_ui_policy']
+            record_name = result_data['short_description']
+            scripts_list = [
+                    ["script_false", "script_if_false.js"],
+                    ["script_true", "script_if_true.js"]
+                ]
+            fields_list = [
+                    "Basic",
+                    ["Table", "", "table"],
+                    ["Application", comment_read_only, "", "sys_scope.value"],
+                    ["Active", comment_boolean, "", "active"],
+                    ["Short description", "", "short_description"],
+                    ["Order", comment_integer, "", "order"],
+                    "When to Apply",
+                    # CONDITIONS
+                    ["Global", comment_boolean, "", "global"],
+                    ["On load", comment_boolean, "", "on_load"],
+                    ["Reverse if false", comment_boolean, "", "reverse_if_false"],
+                    ["Ingerit", comment_boolean, "", "inherit"],
+                    "Script",
+                    ["Run scripts", comment_boolean, "", "run_scripts"]
+
+                ]
+        elif found_type in ui_action:
+            record_type = self.standard_paths['files_ui_action']
+            record_name = result_data['name']
+            scripts_list = [
+                    ["comments", "comments.txt"],
+                    ["script", "script.js"]
+                ]
+            fields_list = [
+                    "Basic",
+                    ["Name", "", "name"],
+                    ["Table", "", "table"],
+                    ["Order", comment_integer, "", "order"],
+                    ["Action name", "", "action_name"],
+                    ["Active", comment_boolean, "", "active"],
+                    ["Show insert", comment_boolean, "", "show_insert"],
+                    ["Show update", comment_boolean, "", "show_update"],
+                    ["UI11 Compatibile", comment_boolean, "", "ui11_compatible"],
+                    ["UI16 Compatibile", comment_boolean, "", "ui16_compatible"],
+                    ["Application", comment_read_only, "", "sys_scope.value"],
+                    ["Form button", comment_boolean, "", "form_button"],
+                    ["Form context menu", comment_boolean, "", "form_context_menu"],
+                    ["Form link", comment_boolean, "", "form_link"],
+                    ["List banner button", comment_boolean, "", "list_banner_button"],
+                    ["List bottom button", comment_boolean, "", "list_button"],
+                    ["List context menu", comment_boolean, "", "list_context_menu"],
+                    ["List choice", comment_boolean, "", "list_choice"],
+                    ["List link", comment_boolean, "", "list_link"],
+                    ["Hint", "", "hint"],
+                    ["Onclick", "", "onclick"],
+                    ["Condition", "", "condition"],
+                    ["Protection policy", comment_read_only, "", "sys_policy"]
+                ]
+        elif found_type in ui_page:
+            record_type = self.standard_paths['files_ui_page']
+            record_name = result_data['name']
+            scripts_list = [
+                    ["html", "html.jelly"],
+                    ["client_script", "client_script.js"],
+                    ["processing_script", "processing_script.js"],
+                    ["description", "description.txt"]
+                ]
+            fields_list = [
+                    "Basic",
+                    ["Name", "", "name"],
+                    ["Category", "[cms/ general/ homepages/ htmleditor/ kb/ catalog]", "", "category"],
+                    ["Application", comment_read_only, "", "sys_scope.value"],
+                    ["Direct", comment_boolean, "", "direct"],
+                    ["Prtection policy", comment_read_only, "", "sys_policy"]
+                ]
+        elif found_type in ui_macro:
+            record_type = self.standard_paths['files_ui_macro']
+            record_name = result_data['name']
+            scripts_list = [
+                    ["description", "description.txt"],
+                    ["xml", "xml.jelly"]
+                ]
+            fields_list = [
+                    "Basic",
+                    ["Name", "", "name"],
+                    ["Application", comment_read_only, "", "sys_scope.value"],
+                    ["Active", comment_boolean, "", "active"],
+                    ["Protection policy", "", "sys_policy"]
+                ]
+        elif found_type in ui_script:
+            record_type = self.standard_paths['files_ui_script']
+            record_name = result_data['name']
+            scripts_list = [
+                    ["description", "description.txt"],
+                    ["script", "script.js"]
+                ]
+            fields_list = [
+                    "Basic",
+                    ["Name", "", "name"],
+                    ["Global", comment_boolean, "", "global"],
+                    ["Application", comment_read_only, "", "sys_scope.value"],
+                    ["Active", comment_boolean, "", "active"]
+                ]
+        elif found_type in ui_context_menu:
+            record_type = self.standard_paths['files_ui_context_menu']
+            record_name = result_data['name']
+            scripts_list = [
+                    ["action_script", "action_script.js"],
+                    ["on_show_script", "onshow_script.js"]
+                ]
+            fields_list = [
+                    "Basic",
+                    ["Table", "", "table"],
+                    ["Menu", "[list_title/ list_header/ list_row]", "", "menu"],
+                    ["Type", "[action/ menu/ line/ label/ dynamic]", "", "type"],
+                    ["Name", "", "name"],
+                    ["Application", comment_read_only, "", "sys_scope.value"],
+                    ["Parent", "", "parent"],
+                    ["Odred", comment_integer, "", "order"],
+                    ["Active", comment_boolean, "", "active"],
+                    ["Run onShow script", comment_boolean, "", "run_on_show_script"],
+                    ["Condition", "", "condition"]
+                ]
+        elif found_type in catalog_ui_policy:
+            record_type = self.standard_paths['files_catalog_ui_policy']
+            record_name = result_data['short_description']
+            scripts_list = [
+                    ["script_false", "script_if_false.js"],
+                    ["script_true", "script_if_true.js"]
+                ]
+            fields_list = [
+                    "Basic",
+                    ["Applies to", "[item / set]", "applies_to"],
+                    ["Catalog item", "", "catalog_item.value"],
+                    ["Short description", "", "short_description"],
+                    ["Active", comment_boolean, "", "active"],
+                    "When to Apply",
+                    # CATALOG CONDITIONS
+                    ["Applies on Catalog Item view", comment_boolean, "", "applies_catalog"],
+                    ["Applies on Catalog Tasks", comment_boolean, "", "applies_sc_task"],
+                    ["Applies on Requested Items", comment_boolean, "", "applies_req_item"],
+                    ["On load", comment_boolean, "", "on_load"],
+                    ["Reverse if false", comment_boolean, "", "reverse_if_false"],
+                    "Script",
+                    ["Run scripts", comment_boolean, "", "run_scripts"]
+                ]
+        elif found_type in catalog_client_script:
+            record_type = self.standard_paths['files_catalog_client_script']
+            record_name = result_data['name']
+            scripts_list = [
+                    ["script", "script.js"]
+                ]
+            fields_list = [
+                    "Basic",
+                    ["Name", "", "name"],
+                    ["Applies to", "[item - Catalog Item/ set - Variable Set]", "", "applies_to"],
+                    ["Active", comment_boolean, "", "active"],
+                    ["UI Type", "[0 - Desktop/ 1 - Mobile/ 10 - Both]", "", "ui_type"],
+                    ["Application", comment_read_only, "", "sys_scope.value"],
+                    ["Type", "[onCellEdit/ onChange/ onLoad/ onSubmit]", "", "type"],
+                    ["Catalog item", "(sys_id)", "", "cat_item.value"],
+                    ["Variable name", "", "cat_variable"],
+                    ["Applies on Catalog Item view", comment_boolean, "", "applies_catalog"],
+                    ["Applies on Requested Items", comment_boolean, "", "applies_req_item"],
+                    ["Applies on Catalog Task", comment_boolean, "", "applies_sc_task"]
                 ]
 
         if record_name is None:

@@ -14,11 +14,17 @@ class FileSystem(object):
         "projects_home": "projects",
         # folders
         "files_business_rule": "business_rule",
+        "files_data_policy": "data_policy",
         "files_script_include": "script_include",
+        "files_client_script": "client_script",
         "files_ui_policy": "ui_policy",
         "files_ui_action": "ui_action",
-        "files_data_policy": "data_policy",
-        "files_client_script": "client_script",
+        "files_ui_page": "ui_page",
+        "files_ui_macro": "ui_macro",
+        "files_ui_script": "ui_script",
+        "files_ui_context_menu": "ui_context_menu",
+        "files_catalog_ui_policy": "catalog_ui_policy",
+        "files_catalog_client_script": "catalog_client_script",
         "files_custom": "custom",
         "file_standard_file": "row_data.data"
         }
@@ -233,3 +239,4 @@ class FileSystem(object):
             files_list.append(new_data)
         self.override_settings_file(files_list)
         return
+
