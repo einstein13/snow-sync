@@ -108,7 +108,11 @@ class Server(ThreadCommons, ServerCommands):
         splitted = command.split(" ")
 
         if command == 'exit':
-            self.exit_all()
+            self.exit_all(command)
+        elif command == 'exit_current_command':
+            self.exit_current_command(command)
+        elif command == 'exit_with_prompt':
+            self.exit_with_prompt(command)
         elif splitted[0] == 'read_settings' or\
                 (splitted[0] == 'read' and splitted[1] == 'settings'):
             self.read_settings(command)
@@ -124,11 +128,14 @@ class Server(ThreadCommons, ServerCommands):
             self.show_settings(command)
         elif command.startswith("delete_settings") or command.startswith("delete settings"):
             self.delete_settings(command)
-        elif command == "add_files" or command == "add files":
+        elif command == "add_files" or command == "add files" or\
+                command == "add_file" or command == "add file":
             self.add_files(command)
-        elif command == "show_files" or command == "show files":
+        elif command == "show_files" or command == "show files" or\
+                command == "show_file" or command == "show file":
             self.show_files(command)
-        elif command == "delete_files" or command == "delete files":
+        elif command == "delete_files" or command == "delete files" or\
+                command == "delete_file" or command == "delete file":
             self.delete_files(command)
         elif command == "truncate_files" or command == "truncate files":
             self.truncate_files(command)

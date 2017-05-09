@@ -101,10 +101,6 @@ class Input(ThreadCommons):
         self.push_output(sign, typ='command_sign')
         return
 
-    def abort_current_command(self):
-        self.general_data['server_queue'].append('abort_current')
-        return
-
     def quit_current_command(self):
         self.input_queue[0]['answer'] = None
         self.general_data['server_queue'].append('exit_current_command')
@@ -174,7 +170,7 @@ class Input(ThreadCommons):
                     if self.command_character_replacement is None:
                         self.push_output(self.input_command, typ='full_command')
                     else:
-                        self.push_output("", typ="full_command")
+                        self.push_output("\n", typ="full_command")
                 elif self.command_default_value:
                     if self.command_character_replacement is None:
                         self.push_output(self.command_default_value, typ='full_command')
