@@ -15,6 +15,7 @@ class ServerCommands(FileSystem, Connection):
     settings_files = []
     exit_current = 'exit_current_command'
     no_settings_defined = "No settings defined! (hint: read_settings)"
+    command_aborted = "Command aborted"
     standard_confirm = ['yes', 'y', 'true', 't', 'tak']
     standard_reject = ['false', 'f', 'no', 'n', 'nie']
     standard_yes_no = standard_confirm + standard_reject
@@ -170,12 +171,7 @@ class ServerCommands(FileSystem, Connection):
         self.exit_ok = True
         return
 
-    def show_files(self, commandd):
-        if self.settings == {}:
-            self.push_output(self.no_settings_defined)
-            return
-
-        self.exit_silence = True
+    def show_files_list(self):
         files = self.get_settings_files_list()
         records = [["No.", "type", "name", "table", "sys_id"]]
         for itr in range(len(files)):
@@ -186,6 +182,15 @@ class ServerCommands(FileSystem, Connection):
                 ])
         self.push_output("Synchronized records:")
         self.push_output(records, typ="table")
+        return
+
+    def show_files(self, commandd):
+        if self.settings == {}:
+            self.push_output(self.no_settings_defined)
+            return
+
+        self.exit_silence = True
+        self.show_files_list()
         return
 
     def show_result_data_in_table(self, result_data):
@@ -269,7 +274,7 @@ class ServerCommands(FileSystem, Connection):
             record_name = result_data[record_characteristics["record_name"]]
 
         # record type
-        record_type = self.standard_paths[record_characteristics["files_custom"]]
+        record_type = self.standard_paths["files_custom"]
         if record_characteristics["standard_path_name"]:
             record_type = self.standard_paths[record_characteristics["standard_path_name"]]
 
@@ -288,7 +293,34 @@ class ServerCommands(FileSystem, Connection):
             if not result_data_shown:
                 self.show_result_data_in_table()
                 result_data_shown = True
-            # Ask about all scripts and other fields
+
+            # Ask about all scripts
+            self.push_output("Define fields that will be saved as files (Esc = next step)")
+            while True:
+
+                field_name = self.get_user_input("Field name:", typ="enable_escaping")
+                if field_name is None:
+                    break
+
+                file_name = self.get_user_input("File name (for %s):" % field_name, typ="enable_escaping")
+                if file_name is None:
+                    break
+
+                scripts_list.append([field_name, file_name])
+
+            # Ask about all fileds
+            fields_list.append("Basic")
+            self.push_output("Define all custom fields that will be stored in a single data file (Esc = end process)")
+            while True:
+                comment = self.get_user_input("Field description (comment):", typ="enable_escaping")
+                if comment is None:
+                    break
+
+                field_name = self.get_user_input("Field name:", typ="enable_escaping")
+                if field_name is None:
+                    break
+
+                fields_list.append([comment, "", field_name])
 
         # NOW SAVE DATA TO THE FILES
 
@@ -335,12 +367,46 @@ class ServerCommands(FileSystem, Connection):
         if self.settings == {}:
             self.push_output(self.no_settings_defined)
             return
+        self.show_files_list()
+
+        # file number
+        number = self.get_user_input("Write file number to delete:")
+        if number is None:
+            self.abort_current_command(self.exit_current)
+            return
+        try:
+            number = int(number)
+        except:
+            self.push_output("\"%s\" is not a valid integer" % number, typ="inset")
+            return
+
+        result = self.delete_files_settings(number)
+        if result is False:
+            self.push_output("Number out of range", typ="inset")
+            return
+
+        self.push_output("File removed from database", typ="inset")
+        self.exit_ok = True
         return
 
     def truncate_files(self, command):
         if self.settings == {}:
             self.push_output(self.no_settings_defined)
             return
+
+        self.show_files_list()
+        string = "Confirm deleting all data about files (yes/no):"
+        confirmation = self.get_user_input(string,
+                invalid_message="Give yes/no answer:", options=self.standard_yes_no,
+                typ="commmon_switch")
+
+        if confirmation in self.standard_confirm:
+            number = self.truncate_files_settings()
+            string = "Deleted %s record" % number
+            if number != 0:
+                string += "s"
+            self.push_output(string, typ="inset")
+        self.exit_ok = True
         return
 
     # pull from the server
@@ -372,7 +438,10 @@ class ServerCommands(FileSystem, Connection):
         confirmation = self.get_user_input(string,
                 invalid_message="Give yes/no answer:", options=self.standard_yes_no,
                 typ="commmon_switch", default="yes")
-        if confirmation in self.standard_reject or confirmation is None:
+        if confirmation is None:
+            self.abort_current_command(self.exit_current)
+            return
+        if confirmation in self.standard_reject:
             self.push_output("Aborted", typ="inset")
             return
         self.exit_all("exit")
@@ -380,7 +449,9 @@ class ServerCommands(FileSystem, Connection):
 
     def exit_current_command(self, command):
         self.exit_ok = True
-        self.exit_silence = True
+        # self.exit_silence = True
+        # it shouldn't be run - command should be erased before executing
+        self.push_output("Warning: exit_current_command command")
         return
 
     def push_unknown_command(self, command):

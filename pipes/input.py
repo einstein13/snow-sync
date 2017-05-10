@@ -14,6 +14,7 @@ class Input(ThreadCommons):
     command_case_sensitive = True
     command_default_value = None
     command_character_replacement = None
+    command_exit_current_command_on_escape = True
 
     def __init__(self, inp, out, gen_dat):
         super(Input, self).__init__(inp, out, gen_dat)
@@ -44,7 +45,7 @@ class Input(ThreadCommons):
     def cleanup_input_command(self):
         if self.input_command:
             self.input_history.append(self.input_command)
-            self.input_command = ''
+        self.input_command = ''
         return
 
     def cleanup_command_interpretation(self):
@@ -54,6 +55,7 @@ class Input(ThreadCommons):
         self.command_case_sensitive = True
         self.command_default_value = None
         self.command_character_replacement = None
+        self.command_exit_current_command_on_escape = True
         return
 
     def send_completed_command(self):
@@ -66,13 +68,14 @@ class Input(ThreadCommons):
     def push_answer(self):
         answer = self.input_command
         self.cleanup_input_command()
-        if not self.command_case_sensitive:
-            answer = answer.lower()
+        if answer is not None:
+            if not self.command_case_sensitive:
+                answer = answer.lower()
 
-        # command not in list
-        if self.command_valid_list and answer not in self.command_valid_list:
-            self.push_output(self.command_invalid_message)
-            return
+            # command not in list
+            if self.command_valid_list and answer not in self.command_valid_list:
+                self.push_output(self.command_invalid_message)
+                return
         
         self.input_queue[0]['answer'] = answer
         self.cleanup_command_interpretation()
@@ -188,7 +191,13 @@ class Input(ThreadCommons):
                 if self.input_command != '':
                     self.abort_written_command()
                 else:
-                    self.quit_current_command()
+                    if self.command_exit_current_command_on_escape:
+                        # exit current command
+                        self.quit_current_command()
+                    else:
+                        # send None as an aswer
+                        self.input_command = None
+                        self.push_answer()
                     self.cleanup_command_interpretation()
             elif ord(sign) == 8: # Backspace
                 if len(self.input_command) == 1:
@@ -237,6 +246,9 @@ class Input(ThreadCommons):
             # if there is an character replacement
             if 'character_replacement' in full_command:
                 self.command_character_replacement = full_command['character_replacement']
+
+            if 'exit_current_on_escape' in full_command:
+                self.command_exit_current_command_on_escape = full_command['exit_current_on_escape']
 
             # cleaning up old messages
             self.cleanup_input_command()

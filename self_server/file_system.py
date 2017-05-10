@@ -240,3 +240,20 @@ class FileSystem(object):
         self.override_settings_file(files_list)
         return
 
+    def delete_files_settings(self, settings_number):
+        files_list = self.get_settings_files_list()
+        if settings_number >= len(files_list) or settings_number < 0:
+            return False # error
+
+        files_list.pop(settings_number)
+
+        self.override_settings_file(files_list)
+        return True # ok
+
+    def truncate_files_settings(self):
+        records = 0
+        while self.delete_files_settings(0):
+            records += 1
+        return records
+
+

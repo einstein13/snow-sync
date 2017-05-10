@@ -437,3 +437,129 @@ class ContentDatabase(object):
             aliases.remove("")
         return aliases
 
+
+class CommandRecognizer(object):
+
+    database = [
+        # EXITING
+        {
+            'command': 'exit_all',
+            'aliases': ['exit', 'exit()', 'quit', 'quit()']
+            },
+        {
+            'command': 'exit_current_command',
+            'aliases': ['exit_current_command']
+            },
+        {
+            'command': 'exit_with_prompt',
+            'aliases': ['exit_with_prompt']
+            },
+        # HELP
+        {
+            'command': 'show_help',
+            'aliases': ['help', 'man']
+            },
+        # SETTINGS
+        {
+            'command': 'show_settings',
+            'aliases': ['show_settings', 'show_setting', 'show settings', 'show setting']
+            },
+        {
+            'command': 'add_settings',
+            'aliases': ['add_settings', 'add_setting', 'add settings', 'add setting']
+            },
+        {
+            'command': 'edit_settings',
+            'aliases': ['edit_settings', 'edit_setting', 'edit settings', 'edit setting']
+            },
+        {
+            'command': 'delete_settings',
+            'aliases': ['delete_settings', 'delete_setting', 'delete settings', 'delete setting',
+                'remove_settings', 'remove settings', 'remove_settings', 'remove setting']
+            },
+        {
+            'command': 'read_settings',
+            'aliases': ['read_settings', 'read_setting', 'read settings', 'read setting']
+            },
+        # FILES
+        {
+            'command': 'show_files',
+            'aliases': ['show_files', 'show_file',
+                        ['show', 'files'], ['show', 'file']]
+            },
+        {
+            'command': 'add_files',
+            'aliases': ['add_files', 'add_file', 'add files', 'add file']
+            },
+        # {
+            # 'command': 'edit_files',
+            # 'aliases': ['edit_files', 'edit_file',
+            #             ['edit', 'files'], ['edit', 'file']]
+            # },
+        {
+            'command': 'delete_files',
+            'aliases': ['delete_files', 'delete_file', 'delete files', 'delete file',
+                'remove_files', 'remove files', 'remove_file', 'remove file']
+            },
+        {
+            'command': 'truncate_files',
+            'aliases': ['truncate_files', 'truncate_file', 'truncate files', 'truncate file']
+            },
+        {
+            'command': 'pull_all_files',
+            'aliases': ['pull', 'pull_all', 'pull all']
+            },
+        {
+            'command': 'push_all_files',
+            'aliases': ['push', 'push_all', 'push all']
+            },
+        # empty for copy
+        {
+            'command': '',
+            'aliases': []
+            }
+    ]
+
+    def split_command(self, command):
+        splitting_element = [" ", "\t"]
+        splitted_0 = [command]
+        splitted_1 = []
+        for element in splitting_element:
+            splitted_1 = []
+            for part in splitted_0:
+                splitted_1 += part.split(element)
+            splitted_0 = list(splitted_1)
+        # delete empty records
+        splitted_1 = []
+        for element in splitted_0:
+            if element:
+                splitted_1.append(element)
+        return splitted_1
+
+    def find_command(self, command):
+        splitted = self.split_command(command)
+        for record in self.database:
+            # for each record in database
+            for alias in record['aliases']:
+                if type(alias) is str and alias.find(" ") > -1: # contains space
+                    alias = self.split_command(alias)
+                # check pure string
+                if type(alias) is str and splitted[0] == alias:
+                    return record['command']
+                # check string with spaces / lists
+                if type(alias) is list:
+                    correct = True
+                    for itr in range(len(alias)):
+                        if alias[itr] != splitted[itr]:
+                            correct = False
+                            break
+                    if correct:
+                        return record['command']
+        return "push_unknown_command"
+
+    def return_command(self, command):
+        result = "self."
+        result += self.find_command(command)
+        result += "(command)"
+        return result
+

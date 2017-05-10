@@ -4,6 +4,7 @@ from time import sleep
 from commons.find import remove_from_list
 from commons.threads import ThreadCommons
 from .server_commands import ServerCommands
+from .datatypes import CommandRecognizer
 
 class Server(ThreadCommons, ServerCommands):
 
@@ -72,14 +73,16 @@ class Server(ThreadCommons, ServerCommands):
                 data_to_input['case_sensitive'] = False
             elif typ == 'case_sensitive':
                 data_to_input['case_sensitive'] = False
+            elif typ == 'enable_escaping':
+                data_to_input['exit_current_on_escape'] = False
 
         answer = self.get_input_data(data_to_input)
 
         return answer
 
     def initiate_exit_message(self):
-        self.exit_type = False
         self.exit_silence = False
+        self.exit_ok = False
         return
 
     def print_exit_message(self):
@@ -100,6 +103,7 @@ class Server(ThreadCommons, ServerCommands):
     def abort_current_command(self, name_to_remove):
         removed = remove_from_list(self.general_data['server_queue'], name_to_remove)
         self.push_output("Command aborted", typ="inset")
+        self.exit_silence = True
         return
 
     # interpreting commands
@@ -107,40 +111,9 @@ class Server(ThreadCommons, ServerCommands):
         self.initiate_exit_message()
         splitted = command.split(" ")
 
-        if command == 'exit':
-            self.exit_all(command)
-        elif command == 'exit_current_command':
-            self.exit_current_command(command)
-        elif command == 'exit_with_prompt':
-            self.exit_with_prompt(command)
-        elif splitted[0] == 'read_settings' or\
-                (splitted[0] == 'read' and splitted[1] == 'settings'):
-            self.read_settings(command)
-        elif command == "pull":
-            self.pull_all_files(command)
-        elif command == "push":
-            self.push_all_files(command)
-        elif command.split(" ")[0] in ("help", "man"):
-            self.show_help(command)
-        elif command == "add_settings" or command == "add settings":
-            self.add_settings(command)
-        elif command == "show_settings" or command == "show settings":
-            self.show_settings(command)
-        elif command.startswith("delete_settings") or command.startswith("delete settings"):
-            self.delete_settings(command)
-        elif command == "add_files" or command == "add files" or\
-                command == "add_file" or command == "add file":
-            self.add_files(command)
-        elif command == "show_files" or command == "show files" or\
-                command == "show_file" or command == "show file":
-            self.show_files(command)
-        elif command == "delete_files" or command == "delete files" or\
-                command == "delete_file" or command == "delete file":
-            self.delete_files(command)
-        elif command == "truncate_files" or command == "truncate files":
-            self.truncate_files(command)
-        else:
-            self.push_unknown_command(command)
+        CR = CommandRecognizer()
+        command_to_execute = CR.return_command(command)
+        exec(command_to_execute)
 
         self.print_exit_message()
         return
