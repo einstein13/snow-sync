@@ -7,7 +7,7 @@ from commons.prints import pretty_json_print, dict_to_list, generate_standard_da
         fix_newline_signs, generate_hash
 from .file_system import FileSystem
 from .connection import Connection
-from .datatypes import ContentDatabase
+from .datatypes import ContentDatabase, CommandRecognizer
 
 class ServerCommands(FileSystem, Connection):
 
@@ -27,16 +27,13 @@ class ServerCommands(FileSystem, Connection):
             self.push_output("No settings included!")
             return
 
-        command_parts = command.split(" ")
-        command_parts.append(None)
-        if command_parts[0] == 'read':
-            command_parts.pop(0)
-            command_parts[0] = 'read_settings'
+        CR = CommandRecognizer()
+        command_arguments = CR.return_command_arguments(command)
 
         message_ok = "Settings loaded sucessfully"
         # message_wrong = "Unable to load settings"
 
-        found_settings = list_dict_find(servers, command_parts[1])
+        found_settings = list_dict_find(servers, command_arguments[1])
         self.settings = found_settings[1]
         self.push_output(message_ok + " (%s, %s)" % (found_settings[0], found_settings[1]['name']), typ="inset")
 
@@ -123,14 +120,13 @@ class ServerCommands(FileSystem, Connection):
 
     def delete_settings(self, command):
         from settings.servers import servers
-        splitted = command.split(" ")
+        CR = CommandRecognizer()
+        command_arguments = CR.return_command_arguments(command)
 
         # name
         name = None
-        if splitted[0] == "delete_settings" and len(splitted) > 1:
-            name = splitted[1]
-        elif len(splitted) > 2:
-            name = splitted[2]
+        if command_arguments[1] != '':
+            name = command_arguments[1]
         else:
             name = self.get_user_input('Type settings name:')
 
@@ -367,10 +363,17 @@ class ServerCommands(FileSystem, Connection):
         if self.settings == {}:
             self.push_output(self.no_settings_defined)
             return
-        self.show_files_list()
+
+        CR = CommandRecognizer()
+        command_arguments = CR.return_command_arguments(command)
 
         # file number
-        number = self.get_user_input("Write file number to delete:")
+        number = None
+        if command_arguments[1] != '':
+            number = command_arguments[1]
+        if number is None:
+            self.show_files_list()
+            number = self.get_user_input("Write file number to delete:")
         if number is None:
             self.abort_current_command(self.exit_current)
             return

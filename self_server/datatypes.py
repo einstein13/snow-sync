@@ -440,12 +440,11 @@ class ContentDatabase(object):
 
 class CommandRecognizer(object):
 
+    unknown_command = "push_unknown_command"
+    splitting_element = [" ", "\t"]
+
     database = [
         # EXITING
-        {
-            'command': 'exit_all',
-            'aliases': ['exit', 'exit()', 'quit', 'quit()']
-            },
         {
             'command': 'exit_current_command',
             'aliases': ['exit_current_command']
@@ -453,6 +452,10 @@ class CommandRecognizer(object):
         {
             'command': 'exit_with_prompt',
             'aliases': ['exit_with_prompt']
+            },
+        {
+            'command': 'exit_all',
+            'aliases': ['exit', 'exit()', 'quit', 'quit()']
             },
         # HELP
         {
@@ -521,10 +524,9 @@ class CommandRecognizer(object):
     ]
 
     def split_command(self, command):
-        splitting_element = [" ", "\t"]
         splitted_0 = [command]
         splitted_1 = []
-        for element in splitting_element:
+        for element in self.splitting_element:
             splitted_1 = []
             for part in splitted_0:
                 splitted_1 += part.split(element)
@@ -555,7 +557,69 @@ class CommandRecognizer(object):
                             break
                     if correct:
                         return record['command']
-        return "push_unknown_command"
+        return self.unknown_command
+
+    def find_alias(self, command):
+        if command == '':
+            return self.unknown_command
+        splitted = self.split_command(command)
+        for record in self.database:
+            # for each record in database
+            for alias in record['aliases']:
+                new_alias = alias
+                if type(new_alias) is str and new_alias.find(" ") > -1: # contains space
+                    new_alias = self.split_command(new_alias)
+                # check pure string
+                if type(new_alias) is str and splitted[0] == new_alias:
+                    return alias
+                # check string with spaces / lists
+                if type(new_alias) is list:
+                    correct = True
+                    for itr in range(len(new_alias)):
+                        if new_alias[itr] != splitted[itr]:
+                            correct = False
+                            break
+                    if correct:
+                        if type(alias) is list:
+                            return list(alias)
+                        else:
+                            return alias
+        return self.unknown_command
+
+    def cut_command(self, command, alias_list):
+        new_command = command
+        while len(alias_list) > 0:
+            if new_command.startswith(alias_list[0]):
+                new_command = new_command[len(alias_list[0]):]
+                alias_list.pop(0)
+            # cut splitting_element
+            while new_command != ''  and new_command[0] in self.splitting_element:
+                new_command = new_command[1:]
+        return new_command
+
+    def return_command_arguments(self, command):
+        alias = self.find_alias(command)
+
+        # cut arguments
+        splitted_alias = alias
+        if type(splitted_alias) is str:
+            splitted_alias = self.split_command(splitted_alias)
+        cutted = self.cut_command(command, splitted_alias)
+
+        # prepare for collecting
+        if type(alias) is list:
+            alias = self.splitting_element[0].join(alias)
+        correct_command = self.find_command(alias)
+        splitted_arguments = self.split_command(cutted)
+
+        # collect result
+        result = []
+        result.append(correct_command)
+        result.append(cutted)
+        result.append(splitted_arguments)
+
+        # return result
+        return result
 
     def return_command(self, command):
         result = "self."
