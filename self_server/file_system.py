@@ -3,7 +3,7 @@ from os import path, pardir, makedirs
 from shutil import rmtree
 
 from commons.find import list_dict_find_by_name
-from commons.prints import pretty_json_print
+from commons.prints import pretty_json_print, generate_hash
 
 class FileSystem(object):
 
@@ -106,27 +106,6 @@ class FileSystem(object):
         parent_path = self.get_files_folder_path(name=name)
         # main folder
         self.create_if_not_exist(parent_path)
-            # # Business Rule
-            # new_path = path.join(parent_path, self.standard_paths['files_business_rule'])
-            # self.create_if_not_exist(new_path)
-            # # Script Include
-            # new_path = path.join(parent_path, self.standard_paths['files_script_include'])
-            # self.create_if_not_exist(new_path)
-            # # UI Policy
-            # new_path = path.join(parent_path, self.standard_paths['files_ui_policy'])
-            # self.create_if_not_exist(new_path)
-            # # UI Action
-            # new_path = path.join(parent_path, self.standard_paths['files_ui_action'])
-            # self.create_if_not_exist(new_path)
-            # # Data Policy
-            # new_path = path.join(parent_path, self.standard_paths['files_data_policy'])
-            # self.create_if_not_exist(new_path)
-            # # Client Script
-            # new_path = path.join(parent_path, self.standard_paths['files_client_script'])
-            # self.create_if_not_exist(new_path)
-            # # Custom folder
-            # new_path = path.join(parent_path, self.standard_paths['files_custom'])
-            # self.create_if_not_exist(new_path)
         return
 
     # all servers file
@@ -190,20 +169,20 @@ class FileSystem(object):
             self.push_output("There was a problem with deleting saved data")
         return
 
-    def get_settings_folder(self):
-        # TO DO?
-        if self.settings == {}:
-            return None
-        settings_path = self.get_project_path()
-        print(path.isdir(settings_path))
-        print(path.exists(settings_path))
-        settings_path = path.join(settings_path, self.standard_paths['settings_folder'])
-        print(path.isdir(settings_path))
-        print(path.exists(settings_path))
-        settings_path = path.join(settings_path, self.settings['name'])
-        print(path.isdir(settings_path))
-        print(path.exists(settings_path))
-        return settings_path
+    # def get_settings_folder(self):
+    #     # TO DO?
+    #     if self.settings == {}:
+    #         return None
+    #     settings_path = self.get_project_path()
+    #     print(path.isdir(settings_path))
+    #     print(path.exists(settings_path))
+    #     settings_path = path.join(settings_path, self.standard_paths['settings_folder'])
+    #     print(path.isdir(settings_path))
+    #     print(path.exists(settings_path))
+    #     settings_path = path.join(settings_path, self.settings['name'])
+    #     print(path.isdir(settings_path))
+    #     print(path.exists(settings_path))
+    #     return settings_path
 
     def create_record_folder(self, typ, record_name):
         # initialize folder, if not exist:
@@ -228,7 +207,39 @@ class FileSystem(object):
         file = open(new_path, "w")
         file.write(file_data[3])
         file.close()
+        # # generate hash
+        # file = open(new_path, "r")
+        # read = file.read()
+        # file.close()
+        # hashed = generate_hash(read)
+        # return hashed
         return
+
+    def get_files_content(self, files_data):
+        new_files_data = dict(files_data)
+        # get basic files folder
+        basic_folder = self.get_files_folder_path()
+        files_folder = path.join(basic_folder, new_files_data["head_folder_name"])
+        files_folder = path.join(files_folder, new_files_data["internal_folder_name"])
+        # get files content
+        for single_data in new_files_data['hashed_data']:
+            checked_file_path = path.join(files_folder, single_data[1])
+            try:
+                file = open(checked_file_path, "r")
+                content = file.read()
+                file.close()
+            except:
+                return None
+            single_data.append(content)
+            hashed = generate_hash(content)
+            single_data.append(hashed == single_data[2])
+        # return list of lists:
+            # [0] - field name
+            # [1] - file name
+            # [2] - hash
+            # [3] - current content
+            # [4] - if hash is equal to content (no changes in the file)
+        return new_files_data
 
     def add_files_settings(self, new_data):
         files_list = self.get_settings_files_list()

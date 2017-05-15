@@ -487,8 +487,7 @@ class CommandRecognizer(object):
         # FILES
         {
             'command': 'show_files',
-            'aliases': ['show_files', 'show_file',
-                        ['show', 'files'], ['show', 'file']]
+            'aliases': ['show_files', 'show_file', 'show files', 'show file']
             },
         {
             'command': 'add_files',
@@ -515,6 +514,10 @@ class CommandRecognizer(object):
         {
             'command': 'push_all_files',
             'aliases': ['push', 'push_all', 'push all']
+            },
+        {
+            'command': 'show_files_status',
+            'aliases': ['status', 'show_status', 'show status']
             },
         # empty for copy
         {

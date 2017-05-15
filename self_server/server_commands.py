@@ -19,6 +19,11 @@ class ServerCommands(FileSystem, Connection):
     standard_confirm = ['yes', 'y', 'true', 't', 'tak']
     standard_reject = ['false', 'f', 'no', 'n', 'nie']
     standard_yes_no = standard_confirm + standard_reject
+    file_status_names = {
+        'no_change': "No changes",
+        'changed': "Record changed",
+        'error': "ERROR"
+        }
 
     # settings
     def read_settings(self, command):
@@ -352,7 +357,9 @@ class ServerCommands(FileSystem, Connection):
             'name': record_name,
             'table': table,
             'sys_id': sys_id,
-            'hashed_data': saved_hashes
+            'hashed_data': saved_hashes,
+            'head_folder_name': record_type,
+            'internal_folder_name': record_name
         }
         self.add_files_settings(record_settings)
 
@@ -412,20 +419,171 @@ class ServerCommands(FileSystem, Connection):
         self.exit_ok = True
         return
 
+    # list files that changed
+    def list_files_changes(self):
+        result = []
+        # returned result (list elemnets):
+            # written status
+            # content
+        # last element:
+            # found changes number
+            # found errors number
+        changes_number = 0
+        errors_number = 0
+        all_files = self.get_settings_files_list()
+        for record in all_files:
+            files_content = self.get_files_content(record)
+            # error
+            if files_content is None:
+                result.append([self.file_status_names['error'], record])
+                errors_number += 1
+                continue
+            # if changed anything
+            changed = False
+            for file_data in record['hashed_data']:
+                if not file_data[-1]:
+                    changed = True
+                    break
+            self.push_output(str(changed), typ="inset")
+            if changed:
+                result.append([self.file_status_names['changed'], files_content])
+                changes_number += 1
+            else:
+                result.append([self.file_status_names['no_change'], files_content])
+        result.append([changes_number, errors_number])
+        return result
+
     # pull from the server
+    def pull_one_file(self, file_data):
+        pass
+
     def pull_all_files(self, command):
         if self.settings == {}:
             self.push_output(self.no_settings_defined)
             return
-        folder_path = self.get_project_path()
-        print(folder_path)
-        print("* * *")
-        self.get_settings_folder()
+
+        # find status of current files
+        changed_files = self.list_files_changes()
+        changes_and_errors = changed_files.pop(-1)
+        continue_process = True
+
+        # if some changes detected
+        if changes_and_errors[0] > 0:
+            string = "There were some changes detected. Pulling can erase them."
+            self.push_output(string)
+            string = "Do you want to proceed [YES/no]?"
+            continue_process = self.get_user_input(string, default="yes",
+                    invalid_message="Give yes/no answer:", options=self.standard_yes_no,
+                    typ="commmon_switch")
+            if continue_process is None:
+                self.abort_current_command(self.exit_current)
+                return
+            continue_process = continue_process in self.standard_confirm
+
+        # if not continuing
+        if not continue_process:
+            self.exit_ok = True
+            return
+
+        # pull all files
+        files_list = self.get_settings_files_list()
+        self.push_output(str(files_list), "pretty_text")
+        # for file_data in self.settings
+
+        # exit command
+        self.exit_ok = True
         return
 
     # push to the server
     def push_all_files(self, command):
-        pass
+        if self.settings == {}:
+            self.push_output(self.no_settings_defined)
+            return
+        return
+
+    # status of files (which are and which aren't modified)
+    def show_files_status(self, command):
+        if self.settings == {}:
+            self.push_output(self.no_settings_defined)
+            return
+        # find status
+        changed_files = self.list_files_changes()
+        changes_and_errors = changed_files.pop(-1)
+
+        # display info about files
+        string = ""
+        if changes_and_errors[1] > 0:
+            string = "" + str(changes_and_errors[1]) + "error"
+            if changes_and_errors[1] > 1:
+                string += "s"
+            string += " occured while reading files from the disk"
+            self.push_output(string, typ="inset")
+        if changes_and_errors[0] == 0:
+            string = "No changes detected"
+        else:
+            string = "There are "
+            string += str(changes_and_errors[0])
+            string += " change"
+            if changes_and_errors[0] > 1:
+                string += "s"
+            string += " detected"
+        self.push_output(string, typ="inset")
+
+        # what to display? (any lists?)
+        show_changed = False
+        show_all = False
+        if changes_and_errors[0] + changes_and_errors[1] > 0:
+            string = "Do you want to display changed/error files list [YES/no]?"
+            show_changed = self.get_user_input(string, default="yes",
+                    invalid_message="Give yes/no answer:", options=self.standard_yes_no,
+                    typ="commmon_switch")
+            if show_changed is None:
+                self.abort_current_command(self.exit_current)
+                return
+            show_changed = show_changed in self.standard_confirm
+        if show_changed is False:
+            string = "Do you want to display all files status [YES/no]?"
+            show_all = self.get_user_input(string, default="yes",
+                    invalid_message="Give yes/no answer:", options=self.standard_yes_no,
+                    typ="commmon_switch")
+            if show_all is None:
+                self.abort_current_command(self.exit_current)
+                return
+            show_all = show_all in self.standard_confirm
+
+        # displaying chosen lists
+        if show_changed:
+            names_to_find = []
+            names_to_find.append(self.file_status_names['changed'])
+            names_to_find.append(self.file_status_names['error'])
+            result_data = [["No.", "status", "type", "name", "table"]]
+            itr = 0
+            for record in changed_files:
+                if record[0] in names_to_find:
+                    itr += 1
+                    result_data.append(
+                            [str(itr), record[0], record[1]['type'],
+                            record[1]['name'], record[1]['table']]
+                            )
+            self.push_output(result_data, typ="table")
+        if show_all:
+            names_to_find = []
+            names_to_find.append(self.file_status_names['no_change'])
+            names_to_find.append(self.file_status_names['changed'])
+            names_to_find.append(self.file_status_names['error'])
+            result_data = [["No.", "status", "type", "name", "table"]]
+            itr = 0
+            for record in changed_files:
+                if record[0] in names_to_find:
+                    itr += 1
+                    result_data.append(
+                            [str(itr), record[0], record[1]['type'],
+                            record[1]['name'], record[1]['table']]
+                            )
+            self.push_output(result_data, typ="table")
+
+        self.exit_ok = True
+        return
 
     # exiting program
     def exit_all(self, command):

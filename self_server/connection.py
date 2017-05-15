@@ -53,7 +53,7 @@ class Connection(object):
 
         return result
 
-    def connect_api(self, table, sys_id=None,  params={}):
+    def connect_api(self, table, sys_id=None, params={}):
         url = self.settings['instance_url']
         if not url.endswith("/"):
             url += "/"
