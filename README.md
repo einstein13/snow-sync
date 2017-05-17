@@ -1,5 +1,5 @@
 # snow-sync
-This is ServiceNow instance synchronization server.
+This is ServiceNow instance synchronization server.  
 It is designed to be as file exchange program between ServiceNow and local disc.
 
 # Installation
@@ -15,8 +15,8 @@ The program will initialize projects folder (ex.: documents/work/projects) and w
 
 ## Settings up a connection to the ServiceNow
 
-type:
-    add settings
+type:  
+`add settings`  
 and provide:
 * Recognizible name (you will see this every time)
 * Short name version of the instance (ex.: dev20354)
@@ -27,8 +27,8 @@ The connection will be checked and the result will be given to you.
 
 ## Define files to exchange
 
-type:
-    add files
+type:  
+`add files`  
 and provide:
 * Type of the object (business rule, user script, ...)
 * sys_id of the object
@@ -38,16 +38,16 @@ documents/work/projects/business_rule/RULE_NAME/script.js, row_data.data
 
 ## Basic synchronization between ServiceNow and your computer
 
-type:
-    pull
+type:  
+`pull`  
 to get all changes from ServiceNow to your computer
 
-type:
-    push
+type:  
+`push`  
 to post changes from your computer to the ServiceNow
 
 ## More information
 
-type:
-    help
+type:  
+`help`  
 to show all topics, not included here
