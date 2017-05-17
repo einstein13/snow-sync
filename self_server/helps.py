@@ -9,7 +9,7 @@ class HelpData(object):
             "",
             "Possible commands:",
             "BASIC:",
-            "  help - shows help (f.e.: \"help exit\")",
+            "  help - shows help (ex.: \"help exit\")",
             "  exit - close down program",
             "SETTINGS:",
             "  show settings - show table with all known settings",
@@ -85,7 +85,7 @@ class HelpData(object):
             'settings': '',
             'files': '',
             'default': 'did you mean \"delete settings\" or \"delete files\"?'
-            }
+            },
         # SYNCHRO
         'status': [
             ],
