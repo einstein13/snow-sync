@@ -5,8 +5,9 @@ from commons.find import remove_from_list
 from commons.threads import ThreadCommons
 from .server_commands import ServerCommands
 from .datatypes import CommandRecognizer
+from .helps import HelpData
 
-class Server(ThreadCommons, ServerCommands):
+class Server(ThreadCommons, ServerCommands, HelpData):
 
     exit_message_error = "Command exited with error"
     exit_message_ok = "Command exited correctly"
@@ -16,42 +17,6 @@ class Server(ThreadCommons, ServerCommands):
     def __init__(self, inp, out, gen_dat):
         super(Server, self).__init__(inp, out, gen_dat)
         self.settings = {}
-        return
-
-    # help parts
-    def show_starting_screen(self):
-        string = "Welcome to the SNow synch server\nTo show help type \"help\" and push Enter"
-        self.push_output(string, typ='pretty_text')
-        return
-
-    def show_help(self, command):
-        self.exit_silence = True
-        command_parts = command.split(" ")
-        help_text = " ".join(command_parts[1:])
-        all_known_commands = [
-            "BASIC:",
-            "  help - shows help",
-            "  exit - close down program (at any stage)",
-            "SETTINGS:",
-            "  show_settings - show table with all known settings",
-            "  read_settings - read chosen settings from recorded file",
-            "  add_settings - add new settings to recorded file",
-            "  delete_settings - delete chosen settings from recorded file",
-            "FILES:",
-            "  show_files - show list of files within configuration",
-            "  add_files - add new file to the configuration",
-            "  delete_files - delete existing file record from the configuration",
-            "  truncate_files - delete all records from the configuration",
-            "SYNCHRO:",
-            "  pull - get all files from the server",
-            "  push - update files on the server"
-            ]
-        if help_text == 'SOMETHING':
-            string = "UNKNOWN MESSAGE"
-        else:
-            string = "H E L P\nPossible commands:\n"
-            string += "\n".join(all_known_commands)
-        self.push_output(string, typ='pretty_text')
         return
 
     # user commands

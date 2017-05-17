@@ -1,6 +1,6 @@
 from urllib import request
 from urllib.parse import urlencode
-from json import loads
+from json import loads, dumps
 
 class Connection(object):
 
@@ -20,7 +20,7 @@ class Connection(object):
         dict_result=loads(connection_result.decode("utf-8"))
         return dict_result
 
-    def connect(self, url, custom_settings=None, headers=None, parse_to_dict=True):
+    def connect(self, url, data=None, custom_settings=None, headers=None, parse_to_dict=True):
         new_settings = custom_settings
         if new_settings is None:
             new_settings = self.settings
@@ -37,11 +37,19 @@ class Connection(object):
             new_headers = self.headers
         new_headers['Authorization'] = "Basic " + new_settings['authorization']
 
-        request_object = request.Request(url, headers=new_headers)
+        request_object = None
+        if data is None:
+            request_object = request.Request(url, headers=new_headers)
+        else:
+            parsed_data = dumps(data)
+            parsed_data = parsed_data.encode("utf-8")
+            request_object = request.Request(url, headers=new_headers, data=parsed_data, method="PUT")
+
         try:
             connection = request.urlopen(request_object)
-        except:
+        except Exception as e:
             self.push_output("Connection error", typ="inset")
+            self.push_output(e, typ="pretty_text")
             return None
         result = connection.read().decode("UTF-8")
 
@@ -53,7 +61,7 @@ class Connection(object):
 
         return result
 
-    def connect_api(self, table, sys_id=None, params={}):
+    def connect_api(self, table, sys_id=None, params={}, data=None):
         url = self.settings['instance_url']
         if not url.endswith("/"):
             url += "/"
@@ -66,8 +74,7 @@ class Connection(object):
             get_params = urlencode(params)
             url += "?" + get_params
 
-        result = self.connect(url)
-        # self.push_output(str(result), typ="pretty_text")
+        result = self.connect(url, data=data)
         return result
 
     def test_connection(self, server_data=None):

@@ -49,35 +49,6 @@ def dict_to_list(dictionary, records=[], name_start=None):
 
     return records
 
-# generates text for row data file
-def generate_standard_data_file_content(data_dictionary, data_content):
-    result = ""
-    indent = "    "
-    for row in data_content:
-        if type(row) is str:
-            result += "# " + row + "\n"
-        elif type(row) is list:
-            comments = True
-            for element in row:
-                if element == "":
-                    comments = False
-                    # ends of comments
-                else:
-                    if comments:
-                        # add comment
-                        result += indent + "# " + element + "\n"
-                    else:
-                        # add variable
-                        # handle with dot-walking
-                        splitted = element.split(".")
-                        to_add = dict(data_dictionary)
-                        for key in splitted:
-                            to_add = to_add[key]
-                        result += indent + element + " = " + to_add + "\n"
-
-            result += "\n"
-    return result
-
 def generate_hash(string):
     hashed = sha1(string.encode("utf-8"))
     return hashed.hexdigest()

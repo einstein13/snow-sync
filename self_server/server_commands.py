@@ -3,8 +3,9 @@ from time import sleep
 from os import path, pardir
 
 from commons.find import list_dict_find, list_dict_find_by_name
-from commons.prints import pretty_json_print, dict_to_list, generate_standard_data_file_content,\
-        fix_newline_signs, generate_hash
+from commons.prints import pretty_json_print, dict_to_list, fix_newline_signs, generate_hash
+from commons.common_files import generate_standard_data_file_schema, parse_data_to_dict,\
+        generate_standard_data_file_content
 from .file_system import FileSystem
 from .connection import Connection
 from .datatypes import ContentDatabase, CommandRecognizer
@@ -24,6 +25,7 @@ class ServerCommands(FileSystem, Connection):
         'changed': "Record changed",
         'error': "ERROR"
         }
+    common_file_name = '__all_fields__'
 
     # settings
     def read_settings(self, command):
@@ -349,7 +351,7 @@ class ServerCommands(FileSystem, Connection):
             self.override_record_file(data)
             # save hash
             hashed = generate_hash(file_content)
-            saved_hashes.append(['__all_fields__', self.standard_paths['file_standard_file'], hashed])
+            saved_hashes.append([self.common_file_name, self.standard_paths['file_standard_file'], hashed])
 
         # create custom project settings
         record_settings = {
@@ -444,7 +446,6 @@ class ServerCommands(FileSystem, Connection):
                 if not file_data[-1]:
                     changed = True
                     break
-            self.push_output(str(changed), typ="inset")
             if changed:
                 result.append([self.file_status_names['changed'], files_content])
                 changes_number += 1
@@ -453,9 +454,66 @@ class ServerCommands(FileSystem, Connection):
         result.append([changes_number, errors_number])
         return result
 
+    # get away unnecessary data from hashed data record
+    def update_hashes(self, file_data):
+        for hashed_data in file_data['hashed_data']:
+            while len(hashed_data) > 3:
+                hashed_data.pop() # cut unnecessary data
+        self.add_files_settings(file_data)
+        return
+
     # pull from the server
     def pull_one_file(self, file_data):
-        pass
+        # download data
+        record_data = self.connect_api(file_data['table'], sys_id=file_data['sys_id'])
+        if record_data is None:
+            self.push_output("Error occured while reading remote files", typ="inset")
+            return False
+        # get data from local file system
+        file_data = self.get_files_content(file_data)
+        result_data = record_data['result']
+
+        files_changed = False
+        # analyze all files
+        for hashed_data in file_data['hashed_data']:
+
+            # all fields data
+            if hashed_data[0] == '__all_fields__':
+                file_shema = generate_standard_data_file_schema(hashed_data[3])
+                new_file_content = generate_standard_data_file_content(result_data, file_shema)
+                new_hash = generate_hash(new_file_content)
+                if new_hash != hashed_data[2]:
+                    # changes occured
+                    file_data_list = [
+                            file_data['head_folder_name'],
+                            file_data['internal_folder_name'],
+                            hashed_data[1],
+                            new_file_content
+                        ]
+                    self.override_record_file(file_data_list)
+                    hashed_data[2] = new_hash
+                    files_changed = True
+                
+            # script files
+            else:
+                new_script = result_data[hashed_data[0]]
+                new_script = fix_newline_signs(new_script)
+                new_hash = generate_hash(new_script)
+                if new_hash != hashed_data[2]:
+                    # if changes occured - rewrite
+                    file_data_list = [
+                            file_data['head_folder_name'],
+                            file_data['internal_folder_name'],
+                            hashed_data[1],
+                            new_script
+                        ]
+                    self.override_record_file(file_data_list)
+                    hashed_data[2] = new_hash
+                    files_changed = True
+
+        if files_changed:
+            self.update_hashes(file_data)
+        return True
 
     def pull_all_files(self, command):
         if self.settings == {}:
@@ -470,6 +528,8 @@ class ServerCommands(FileSystem, Connection):
         # if some changes detected
         if changes_and_errors[0] > 0:
             string = "There were some changes detected. Pulling can erase them."
+            self.push_output(string)
+            string = "(Only changed files on ServiceNow servers will be updated.)"
             self.push_output(string)
             string = "Do you want to proceed [YES/no]?"
             continue_process = self.get_user_input(string, default="yes",
@@ -487,18 +547,82 @@ class ServerCommands(FileSystem, Connection):
 
         # pull all files
         files_list = self.get_settings_files_list()
-        self.push_output(str(files_list), "pretty_text")
-        # for file_data in self.settings
+        for itr in range(len(files_list)):
+            file_data = files_list[itr]
+            self.pull_one_file(file_data)
+            self.push_output("Done: %d/%d" % (itr+1, len(files_list)), typ="inset")
 
         # exit command
         self.exit_ok = True
         return
 
     # push to the server
+    def push_one_file(self, file_data):
+        data_to_send = {}
+        for data in file_data['hashed_data']:
+            if not data[4]:
+                if data[0] == self.common_file_name:
+                    data_to_send.update(parse_data_to_dict(data[3]))
+                else:
+                    data_to_send[data[0]] = data[3]
+            data[2] = generate_hash(data[3])
+        result = self.connect_api(file_data['table'], sys_id=file_data['sys_id'], data=data_to_send)
+        self.update_hashes(file_data)
+        return
+
     def push_all_files(self, command):
         if self.settings == {}:
             self.push_output(self.no_settings_defined)
             return
+
+        # find status of current files
+        changed_files = self.list_files_changes()
+        changes_and_errors = changed_files.pop(-1)
+
+        if changes_and_errors[0] == 0:
+            # if no changes - exit
+            self.push_output("No changes detected", typ="inset")
+            self.exit_ok = True
+            return
+
+        # if some changes detected
+        string = "Are you sure to push changes [YES/no]?"
+        continue_process = self.get_user_input(string, default="yes",
+                invalid_message="Give yes/no answer:", options=self.standard_yes_no,
+                typ="commmon_switch")
+        if continue_process is None:
+            self.abort_current_command(self.exit_current)
+            return
+        continue_process = continue_process in self.standard_confirm
+
+        # if not continuing
+        if not continue_process:
+            self.exit_ok = True
+            return
+
+        # push file by file
+        files_list = self.get_settings_files_list()
+
+        # self.push_output(str(files_list), typ="pretty_text")
+        # self.push_output(str(changed_files), typ="pretty_text")
+
+        for record in changed_files:
+            if record[0] == self.file_status_names['changed']:
+                file_data = list_dict_find_by_name(files_list, record[1]['name'])[1]
+                file_data = self.get_files_content(file_data)
+                self.push_one_file(file_data)
+
+
+
+        # for itr in range(len(files_list)):
+        #     file_data = files_list[itr]
+        #     self.pull_one_file(file_data)
+        #     self.push_output("Done: %d/%d" % (itr+1, len(files_list)), typ="inset")
+        # self.push_output(str(files_list), "pretty_text")
+        # for file_data in self.settings
+
+        # exit command
+        self.exit_ok = True
         return
 
     # status of files (which are and which aren't modified)

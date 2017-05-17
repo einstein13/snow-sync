@@ -553,6 +553,8 @@ class CommandRecognizer(object):
                     return record['command']
                 # check string with spaces / lists
                 if type(alias) is list:
+                    if len(alias) > len(splitted):
+                        continue
                     correct = True
                     for itr in range(len(alias)):
                         if alias[itr] != splitted[itr]:
