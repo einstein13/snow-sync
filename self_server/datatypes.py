@@ -509,11 +509,11 @@ class CommandRecognizer(object):
             },
         {
             'command': 'pull_all_files',
-            'aliases': ['pull', 'pull_all', 'pull all']
+            'aliases': ['pull', 'pull_all', 'pull all', 'git_pull', 'git pull']
             },
         {
             'command': 'push_all_files',
-            'aliases': ['push', 'push_all', 'push all']
+            'aliases': ['push', 'push_all', 'push all', 'git_push', 'git push']
             },
         {
             'command': 'show_files_status',

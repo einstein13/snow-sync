@@ -25,7 +25,7 @@ class HelpData(object):
             "SYNCHRO:",
             "  pull - get all files from the server",
             "  push - update files on the server",
-            "  status - show status of files on local disk"
+            "  status - show status of files on local disk",
             "",
             "Other topics:",
             "  about",
@@ -69,33 +69,143 @@ class HelpData(object):
             'default': 'did you mean \"show files\" or \"show settings\"?'
             },
         'read': {
-            'settings': '',
+            'settings': [
+                "READ SETTINGS commmand",
+                "Reads saved configuration to program memory.",
+                "You can define settings by: user defined name (first argument",
+                "when you defined new connection), setting number on list",
+                "(command show_settings will show correct list)",
+                "or by default: first settings on the list.",
+                "",
+                "Basic usage: \"read settings 1\", \"read settings MyName\" ",
+                "",
+                "See also: \"show settings\", \"add settings\""
+                ],
             'default': 'did you mean \"read settings\"?',
             },
         'add': {
-            'settings': '',
-            'files': '',
+            'settings': [
+                "ADD SETTINGS command",
+                "Adds new connection with ServiceNow record.",
+                "To provide all necessary information,",
+                "you will answer several questions:",
+                "  * Name of the settings you want to see",
+                "      (can be \"my_dev_instance\")",
+                "  * Short name of the instance (ex.: dev20354)",
+                "  * URL of the instance (based on short name)",
+                "  * Username you want to use for connection",
+                "  * Password for username (is hidden by \"*\" signs)",
+                "After giving that information, the connection will be tested.",
+                "Data about connection will be stored on your local drive,",
+                "but password will be stored in hashed way.",
+                "The connection data will not be used as active settings,",
+                "you have to read it by using read_settings command.",
+                "",
+                "See also: \"show settings\", \"add files\""
+                ],
+            'files': [
+                "ADD FILES command",
+                "Adds new file to your local disk and saved files list.",
+                "To download a file, you have to provide:",
+                "  * Type of file (business rule/ client script/ ...)",
+                "  * sys_id of the object",
+                "The program will try to connect to ServiceNow instance",
+                "and download correct data. After that files will be stored.",
+                "All the process will be done automatic.",
+                "",
+                "Files customization",
+                "There is also a possibility to download custom file(s).",
+                "You need to provide extra table name",
+                "(ex.: u_custom_script) where the object is.",
+                "After that data will be downloaded and the rest of process",
+                "will contains:",
+                "  * Showing data in a table form",
+                "  * Asking about scripts (long data)",
+                "  * Asking about other data (short forms)",
+                "This process is not recommended to standard users.",
+                "Also you can define your own form and scripts files",
+                "for standard types of files, without making any changes",
+                "in a program code.",
+                "",
+                "See also: \"show files\", \"add setttings\", \"status\"",
+                ],
             'default': 'did you mean \"add files\" or \"add settings\"?'
             },
         'edit': {
-            'settings': '',
+            'settings': [
+                "EDIT SETTINGS command",
+                "currently under construction"
+                ],
             'default': 'did you mean \"edit settings\"?'
             },
         'delete': {
-            'settings': '',
+            'settings': [
+                "DELETE SETTINGS command",
+                "Deletes chosen settings from stored list.",
+                "There are two possibilities of doing this:",
+                "  * by providing user name of the settings",
+                "  * by choosing from the list of settings.",
+                "With the first way you will be aksed",
+                "to confirm deletion. While with the second way",
+                "you will see a list with all stored settings",
+                "and you will be asked do specify correct name.",
+                "Deleting will erase data about connection,",
+                "but WILL NOT erase stored files on the disk!",
+                "Files in the \"project\" folder are safe.",
+                "",
+                "See also: \"add settings\", \"show settings\", \"delete files\"",
+                ],
             'files': '',
             'default': 'did you mean \"delete settings\" or \"delete files\"?'
             },
         # SYNCHRO
         'status': [
+            "STATUS command",
+            "Shows status of the files: are they available or changed.",
+            "First information is about how many changed files are discovered.",
+            "A table with all listed files and their statuses can be shown.",
+            "",
+            "See also: \"pull\", \"push\""
             ],
         'pull': [
+            "PULL command",
+            "Gets all new information from the server.",
+            "If any changes are detected on your local project,",
+            "you will be asked if you are sure about this process.",
+            "Pulling will not overwrite all the files. Only new",
+            "information will be stored and possibly overwrite",
+            "changes made by you.",
+            "Example: you have downloaded 4 files: A, B, C and D.",
+            "Then you modified A and B. Somebody modified B and C",
+            "and changes are stored in ServiceNow instance.",
+            "After pull command A will stay with your changes,",
+            "B will be overwritten to current instance version,",
+            "C will be updated, and D will stay as it is.",
+            "",
+            "See also: \"push\", \"status\", \"watch\", \"synchro\""
             ],
         'push': [
+            "PUSH command",
+            "Sends all modified files to the ServiceNow instance.",
+            "All changes you've done to the tracked files",
+            "will be sent to ServiceNow. There is no check",
+            "if anybody made any changes there, and all",
+            "modified files will be overwritten.",
+            "Example: you have downloaded 2 files: A and B.",
+            "A was modified on your local disk, and both",
+            "of them were modified in ServiceNow instance.",
+            "After push command, A file will be overwritten",
+            "and B will stay as it was.",
+            "",
+            "See also: \"pull\", \"status\", \"watch\", \"synchro\"",
             ],
         'watch': [
+            "WATCH command",
+            "currently under construction"
             ],
-        'unwatch': ['currently under construction'
+        'unwatch': [
+            "UNWATCH command",
+            "currently under construction"
             ],
         # OTHER TOPICS,
         'about': [
