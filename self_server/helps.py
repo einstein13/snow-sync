@@ -175,6 +175,7 @@ class HelpData(object):
             "Pulling will not overwrite all the files. Only new",
             "information will be stored and possibly overwrite",
             "changes made by you.",
+            "",
             "Example: you have downloaded 4 files: A, B, C and D.",
             "Then you modified A and B. Somebody modified B and C",
             "and changes are stored in ServiceNow instance.",
@@ -191,6 +192,7 @@ class HelpData(object):
             "will be sent to ServiceNow. There is no check",
             "if anybody made any changes there, and all",
             "modified files will be overwritten.",
+            "",
             "Example: you have downloaded 2 files: A and B.",
             "A was modified on your local disk, and both",
             "of them were modified in ServiceNow instance.",
@@ -199,6 +201,12 @@ class HelpData(object):
             "",
             "See also: \"pull\", \"status\", \"watch\", \"synchro\"",
             ],
+        'git': {
+            'status': 'did you mean \"status\"?',
+            'pull': 'did you mean \"pull\"?',
+            'push': 'did you mean \"push\"?',
+            'default': 'See: \"status\", \"pull\", \"push\"'
+            },
         'watch': [
             "WATCH command",
             "currently under construction"
@@ -209,13 +217,78 @@ class HelpData(object):
             ],
         # OTHER TOPICS,
         'about': [
+            "The program was developed to make work with ServiceNow faster.",
+            "Main task is to copy script files to your disk and keep it updated.",
+            "",
+            "The program was developed by Jakub Rak (jakub.rak@engage-esm.com),",
+            "and all the rights are to Engage ESM company.",
+            "",
+            "If you spot anny issue, feel free to contact."
             ],
         'commands': [
+            "Typing commands can be done in multiple ways.",
+            "It was designed to interpret many aliases of the same command.",
+            "For example if you want to exit, it is possible to use:",
+            "  * exit - simple and basic",
+            "  * exit() - pythonic way of exiting",
+            "  * quit - some programs prefer that keyword",
+            "  * quit() - if you stick to this way",
+            "For most of multiple words commands it is reccomend to type",
+            "all the keywords connected by underscore (\"_\"),",
+            "but if you forget, the command should be interpreted correctly.",
+            "",
+            "There are several tools you can easily use:",
+            "  * Esc - canceles written part of command or quit command",
+            "  * Ctrl + v - paste any text from the clipboard",
+            "",
+            "There are several \"TO DO\" tools:",
+            "  * TAB auto completer",
+            "  * arrow-up/down command memory"
             ],
         'settings': [
+            "Settings is saved data about connection with your instances.",
+            "There are several commands you can use to define or modify it:",
+            "  * add settings - defines new settings",
+            "  * edit settings - edits existing record",
+            "  * read settings - opens existing record",
+            "  * show settings - shows list of known settings",
+            "  * delete settings - removes existing record",
+            "First step for using the program is to add a connection setting,",
+            "then you should read created settings and then all file tools",
+            "will be available."
+            "",
+            "Database:",
+            "The program is not using professional database like MySQL.",
+            "It uses simple json files, so you don't need to stick to rules,",
+            "and you are able to edit / add / delete all the settings by your own.",
+            "The process was desinged to be simple and you don't have to do such a things."
+            "",
+            "See also: \"files\""
             ],
         'setting': 'did you mean \"settings\"?',
         'files': [
+            "Files is a list of all known records that are expected to be synchronized.",
+            "Records ususally are splitted into several files on your local disk:",
+            "single file for every long-text fields and one file for other fields.",
+            "Those records are customize for single settings set."
+            "You can use commands:",
+            "  * add files - adds new record",
+            "  * show files - shows list of added files",
+            "  * delete files - deletes record from saved list",
+            "  * truncate files - deletes all records from saved list",
+            "After reading settings, those commands are available.",
+            "Adding files will make record copies on your local disk imidiately.",
+            "Deleting will remove data about the files, but not the files themselves.",
+            "",
+            "Structure:",
+            "If you modify structure of the file system (file names), errors will occure.",
+            "Only inside structure of files can be modified. Short fields files called",
+            "row_data.data have own structure, interpreted by the program. You can modify it,",
+            "but you should stick to indents and comments prefixes. Updating files will not",
+            "change the structure, only data.",
+            "",
+            "See also: \"settings\", \"synchro\""
+
             ],
         'file': 'did you mean \"files\"?',
         'synchro': ['currently under construction'

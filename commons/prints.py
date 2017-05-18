@@ -1,5 +1,6 @@
 from json import dumps
 from hashlib import sha1
+from base64 import b64encode
 
 def pretty_json_print(data):
     string = dumps(data, indent=4)
@@ -52,3 +53,8 @@ def dict_to_list(dictionary, records=[], name_start=None):
 def generate_hash(string):
     hashed = sha1(string.encode("utf-8"))
     return hashed.hexdigest()
+
+def hash_password(username, password):
+    string = username + ":" + password
+    hashed = b64encode(bytes(string, "UTF-8")).decode("UTF-8")
+    return hashed

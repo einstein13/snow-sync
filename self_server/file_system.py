@@ -1,5 +1,5 @@
 from json import loads
-from os import path, pardir, makedirs
+from os import path, pardir, makedirs, rename
 from shutil import rmtree
 
 from commons.find import list_dict_find_by_name
@@ -108,7 +108,7 @@ class FileSystem(object):
         self.create_if_not_exist(parent_path)
         return
 
-    # all servers file
+    # settings file
     def override_servers_settings_file(self, string_data):
         project_path = self.get_project_path()
         file_path = path.join(project_path, self.standard_paths['settings_folder'])
@@ -118,7 +118,7 @@ class FileSystem(object):
         file.close()
         return
 
-    # server folder & files
+    # server settings files
     def create_settings_folder(self, name=None):
         new_name = name
         if new_name is None:
@@ -129,8 +129,20 @@ class FileSystem(object):
             makedirs(folder_path)
             self.override_settings_file([], name=name)
         except:
-            self.push_output("There was a problem with creating settings path")
+            self.push_output("There was a problem with creating settings path", typ="inset")
         return
+
+    def change_settings_folder_name(self, old_name, new_name):
+        project_path = self.get_project_path()
+        folder_path = path.join(project_path, self.standard_paths['settings_folder'])
+        old_folder = path.join(folder_path, old_name)
+        new_folder = path.join(folder_path, new_name)
+        try:
+            rename(old_folder, new_folder)
+        except:
+            self.push_output("There was a problem with renaming settings path", typ="inset")
+            return False
+        return True
 
     def override_settings_file(self, data, name=None):
         new_name = name
@@ -166,24 +178,10 @@ class FileSystem(object):
         try:
             rmtree(folder_path)
         except:
-            self.push_output("There was a problem with deleting saved data")
+            self.push_output("There was a problem with deleting saved data", typ="inset")
         return
 
-    # def get_settings_folder(self):
-    #     # TO DO?
-    #     if self.settings == {}:
-    #         return None
-    #     settings_path = self.get_project_path()
-    #     print(path.isdir(settings_path))
-    #     print(path.exists(settings_path))
-    #     settings_path = path.join(settings_path, self.standard_paths['settings_folder'])
-    #     print(path.isdir(settings_path))
-    #     print(path.exists(settings_path))
-    #     settings_path = path.join(settings_path, self.settings['name'])
-    #     print(path.isdir(settings_path))
-    #     print(path.exists(settings_path))
-    #     return settings_path
-
+    # project files
     def create_record_folder(self, typ, record_name):
         # initialize folder, if not exist:
         self.initialize_files_type_folder(typ)
@@ -193,6 +191,16 @@ class FileSystem(object):
         new_path = path.join(new_path, record_name)
         self.create_if_not_exist(new_path)
         return
+
+    def change_files_folder(self, old_name, new_name):
+        old_folder = self.get_files_folder_path(name=old_name)
+        new_folder = self.get_files_folder_path(name=new_name)
+        try:
+            rename(old_folder, new_folder)
+        except:
+            self.push_output("There was a problem with renaming project path", typ="inset")
+            return False
+        return True
 
     def override_record_file(self, file_data):
         # file_data - all needed data:

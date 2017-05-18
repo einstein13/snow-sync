@@ -3,7 +3,7 @@ from time import sleep
 from os import path, pardir
 
 from commons.find import list_dict_find, list_dict_find_by_name
-from commons.prints import pretty_json_print, dict_to_list, fix_newline_signs, generate_hash
+from commons.prints import pretty_json_print, dict_to_list, fix_newline_signs, generate_hash, hash_password
 from commons.common_files import generate_standard_data_file_schema, parse_data_to_dict,\
         generate_standard_data_file_content
 from .file_system import FileSystem
@@ -28,6 +28,15 @@ class ServerCommands(FileSystem, Connection):
     common_file_name = '__all_fields__'
 
     # settings
+    def show_settings_list(self):
+        from settings.servers import servers
+        elements = [['No', 'name', 'url']]
+        for itr in range(len(servers)):
+            server = servers[itr]
+            elements.append([str(itr), server['name'], server['instance_url']])
+        self.push_output(elements, typ="table")
+        return
+
     def read_settings(self, command):
         from settings.servers import servers
         if len(servers) == 0:
@@ -54,14 +63,9 @@ class ServerCommands(FileSystem, Connection):
 
     def show_settings(self, command):
         self.exit_silence = True
-        from settings.servers import servers
-        elements = [['No', 'name', 'url']]
-        for itr in range(len(servers)):
-            server = servers[itr]
-            elements.append([str(itr), server['name'], server['instance_url']])
 
         self.push_output("List of known servers:")
-        self.push_output(elements, typ="table")
+        self.show_settings_list()
         return
 
     def add_settings(self, command):
@@ -97,7 +101,7 @@ class ServerCommands(FileSystem, Connection):
             self.abort_current_command(self.exit_current)
             return
 
-        hashed_data = b64encode(bytes(user_name + ":" + user_password, "UTF-8")).decode("UTF-8")
+        hashed_data = hash_password(user_name, user_password)
 
         # add settings to servers list
         completed_data = {
@@ -125,6 +129,102 @@ class ServerCommands(FileSystem, Connection):
         self.exit_ok = True
         return
 
+    def edit_settings(self, command):
+        from settings.servers import servers
+        CR = CommandRecognizer()
+        command_arguments = CR.return_command_arguments(command)
+
+        # name
+        name = None
+        if command_arguments[1] != '':
+            name = command_arguments[1]
+        else:
+            self.show_settings_list()
+            name = self.get_user_input('Type settings name for edit:')
+
+        if name is None:
+            self.abort_current_command(self.exit_current)
+            return
+
+        # look for correct settings
+        found_settings = list_dict_find_by_name(servers, name)
+        if found_settings is None:
+            self.push_output("Can't find any settings by given name (%s)." % name)
+            return
+
+        self.push_output(found_settings, typ="pretty_text")
+        last_values = found_settings[1]
+        # Now we can modify values
+        name = self.get_user_input('Type settings name [%s]:' % last_values['name'],
+                default=last_values['name'])
+        if name is None:
+            self.abort_current_command(self.exit_current)
+            return
+        if list_dict_find_by_name(servers, name) is not None and name != last_values['name']:
+            self.push_output("Given name (%s) is already used. Please chose another or delete current." % name)
+            return
+        name_changed = False
+        if name != last_values['name']:
+            name_changed = True
+
+        instance_name = self.get_user_input('Instance name [%s]:' % last_values['instance_name'],
+                default=last_values['instance_name'])
+        if instance_name is None:
+            self.abort_current_command(self.exit_current)
+            return
+
+        default_url = 'https://%s.service-now.com/' % instance_name
+        instance_url = self.get_user_input('Instance url [%s]:' % last_values['instance_url'],
+                default=last_values['instance_url'])
+        if instance_url is None:
+            self.abort_current_command(self.exit_current)
+            return
+
+        user_name = self.get_user_input('Username for instance:')
+        if user_name is None:
+            self.abort_current_command(self.exit_current)
+            return
+
+        user_password = self.get_user_input('User password for instnce:', typ='password')
+        if user_password is None:
+            self.abort_current_command(self.exit_current)
+            return
+
+        hashed_data = hash_password(user_name, user_password)
+
+        # change settings list
+        completed_data = {
+            'name': name,
+            'authorization': hashed_data,
+            'instance_name': instance_name,
+            'instance_url': instance_url
+        }
+        servers[found_settings[0]] = completed_data
+        string_data = pretty_json_print(servers)
+        self.override_servers_settings_file(string_data)
+        self.push_output("Settings stored", typ="inset")
+
+        # change folder to settings
+        results = [True, True]
+        if name_changed:
+            old_name = last_values['name']
+            results[0] = self.change_settings_folder_name(old_name, name)
+            results[1] = self.change_files_folder(old_name, name)
+
+        # test connection
+        test_result = self.test_connection(server_data=completed_data)
+        if test_result:
+            self.push_output("Connection OK", typ="inset")
+        else:
+            self.push_output("Connection is not working", typ="inset")
+
+        if results[0] and results[1]:
+            self.exit_ok = True
+        else:
+            self.exit_ok = False
+
+        return
+
     def delete_settings(self, command):
         from settings.servers import servers
         CR = CommandRecognizer()
@@ -135,7 +235,8 @@ class ServerCommands(FileSystem, Connection):
         if command_arguments[1] != '':
             name = command_arguments[1]
         else:
-            name = self.get_user_input('Type settings name:')
+            self.show_settings_list()
+            name = self.get_user_input('Type settings name to delete:')
 
         if name is None:
             self.abort_current_command(self.exit_current)
