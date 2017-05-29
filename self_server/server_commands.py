@@ -810,6 +810,12 @@ class ServerCommands(FileSystem, Connection):
         self.exit_ok = True
         return
 
+    # runs automatic file exchange
+    def start_watch(self, command):
+        self.exit_silence = True
+        return
+
+
     # exiting program
     def exit_all(self, command):
         self.exit_silence = True
@@ -837,7 +843,7 @@ class ServerCommands(FileSystem, Connection):
         self.exit_ok = True
         # self.exit_silence = True
         # it shouldn't be run - command should be erased before executing
-        self.push_output("Warning: exit_current_command command")
+        self.push_output("Warning command: exit_current_command")
         return
 
     def push_unknown_command(self, command):

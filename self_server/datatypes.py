@@ -493,11 +493,6 @@ class CommandRecognizer(object):
             'command': 'add_files',
             'aliases': ['add_files', 'add_file', 'add files', 'add file']
             },
-        # {
-            # 'command': 'edit_files',
-            # 'aliases': ['edit_files', 'edit_file',
-            #             ['edit', 'files'], ['edit', 'file']]
-            # },
         {
             'command': 'delete_files',
             'aliases': ['delete_files', 'delete_file', 'delete files', 'delete file',
@@ -518,6 +513,10 @@ class CommandRecognizer(object):
         {
             'command': 'show_files_status',
             'aliases': ['status', 'show_status', 'show status']
+            },
+        {
+            'command': 'start_watch',
+            'aliases': ['watch', 'start watch', 'start_watch', 'start watching', 'start_watching']
             },
         # empty for copy
         {
