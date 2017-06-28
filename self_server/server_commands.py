@@ -791,7 +791,7 @@ class ServerCommands(FileSystem, Connection, Watcher):
         # self.push_output(str(files_list), typ="pretty_text")
         # self.push_output(str(changed_files), typ="pretty_text")
 
-        for record in changed_files:
+        for record in changed_files[:-1]:
             if record[0] == self.file_status_names['changed']:
                 file_data = list_dict_find_by_name(files_list, record[1]['name'])[1]
                 file_data = self.get_files_content(file_data)
@@ -902,7 +902,6 @@ class ServerCommands(FileSystem, Connection, Watcher):
 
         self.exit_silence = True
         self.general_data['watcher']['running'] = True
-        self.push_output(str(self.general_data['watcher']), typ="pretty_text")
         self.watcher_start_watch()
         return
 
@@ -913,7 +912,6 @@ class ServerCommands(FileSystem, Connection, Watcher):
 
         self.exit_silence = True
         self.general_data['watcher']['running'] = False
-        self.push_output(str(self.general_data['watcher']), typ="pretty_text")
         return
 
     # exiting program
@@ -922,6 +920,7 @@ class ServerCommands(FileSystem, Connection, Watcher):
         self.push_output("Exiting program", typ="pretty_text")
         sleep(0.05)
         self.general_data['running'] = False
+        self.general_data['watcher']['running'] = False
         return
 
     def exit_with_prompt(self, command):

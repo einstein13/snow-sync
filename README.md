@@ -51,3 +51,16 @@ to post changes from your computer to the ServiceNow
 type:  
 `help`  
 to show all topics, not included here
+
+## List of all useful commands
+
+* `exit`
+* `help`
+* `[show/add/read/edit/delete] settings`
+* `[show/add/delete/truncate] files`
+* `show record`
+* `pull`
+* `push`
+* `status`
+* `watch`
+* `unwatch`

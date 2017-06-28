@@ -6,8 +6,10 @@ general_data = {
     'watcher': { # settings for watcher
         'running': False,
         'last_pull': time(),
-        'timediff_pull': 60,
+        'timediff_minimal': 60,
+        'timediff_multiplier': 3,
+        'timediff_pull': 20,
         'last_push': time(),
-        'sleep_time': 1.5
+        'sleep_time': 0.5
         }
     }
