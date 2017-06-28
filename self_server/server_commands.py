@@ -9,8 +9,9 @@ from commons.common_files import generate_standard_data_file_schema, parse_data_
 from .file_system import FileSystem
 from .connection import Connection
 from .datatypes import ContentDatabase, CommandRecognizer
+from .watcher import Watcher
 
-class ServerCommands(FileSystem, Connection):
+class ServerCommands(FileSystem, Connection, Watcher):
 
     settings = {}
     settings_files = []
@@ -297,10 +298,10 @@ class ServerCommands(FileSystem, Connection):
         self.show_files_list()
         return
 
-    def show_result_data_in_table(self, result_data):
+    def show_result_data_in_table(self, result_data, length=40, multiline=False):
         self.push_output("List of all downloaded elements:")
         elements = [["name", "value"]]
-        elements = dict_to_list(result_data, elements)
+        elements = dict_to_list(result_data, elements, length=length, multiline=multiline)
         self.push_output(elements, typ="table")
         return
 
@@ -341,7 +342,7 @@ class ServerCommands(FileSystem, Connection):
                 return
 
         # sys_id
-        sys_id = self.get_user_input("Record sys_id:")
+        sys_id = self.get_user_input("Record sys_id:", typ="case_sensitive")
         if sys_id is None:
             return
 
@@ -362,7 +363,7 @@ class ServerCommands(FileSystem, Connection):
             # Ask about record name
             question = "Name of the record (attribute or user defined in quotation marks):"
             record_name = self.get_user_input(question, typ="case_sensitive")
-            if record_name is None:
+            if not record_name:
                 return
             # Get data
             quotations = ["\"", "\'"]
@@ -519,6 +520,89 @@ class ServerCommands(FileSystem, Connection):
             if number != 0:
                 string += "s"
             self.push_output(string, typ="inset")
+        self.exit_ok = True
+        return
+
+    # searches records
+    def find_connected_records(self, record_data):
+        result = []
+        for name in record_data:
+            value = record_data[name]
+            if type(value) is dict and 'value' in value.keys() and 'link' in value.keys():
+                splitted = value['link'].split("/")
+                itr = 0
+                for itr in range(len(splitted)):
+                    if splitted[itr] == "table":
+                        break
+                if itr == len(splitted):
+                    continue
+                itr += 1
+                table = splitted[itr]
+                sys_id = value['value']
+                result.append([name, table, sys_id])
+        return result
+
+    def show_record(self, command):
+        if self.settings == {}:
+            self.push_output(self.no_settings_defined)
+            return
+
+        CR = CommandRecognizer()
+        command_arguments = CR.return_command_arguments(command)
+
+        # get basic info about record
+        if len(command_arguments[2]) < 2:
+            table = self.get_user_input("Table name of the record:", typ="case_sensitive")
+            if table is None:
+                return
+            sys_id = self.get_user_input("Record sys_id:", typ="case_sensitive")
+            if sys_id is None:
+                return
+        else:
+            table = command_arguments[2][0]
+            sys_id = " ".join(command_arguments[2][1:])
+
+        # download data
+        self.push_output("Getting record data", typ="inset")
+        record_data = self.connect_api(table, sys_id=sys_id)
+        if record_data is None:
+            self.push_output("Error occured while reading remote files", typ="inset")
+            return
+        result_data = record_data['result']
+        self.show_result_data_in_table(result_data, length=80, multiline=True)
+
+        connected_records = self.find_connected_records(record_data['result'])
+
+        # if there are connected records - go for next command
+        if len(connected_records) > 0:
+            to_table = [["No.", "Record name", "Record table", "sys_id"]]
+            for itr in range(len(connected_records)):
+                to_table.append([str(itr), connected_records[itr][0],
+                        connected_records[itr][1], connected_records[itr][2]])
+            self.push_output("Found connected records:")
+            self.push_output(to_table, typ="table")
+
+            options = []
+            for itr in range(len(connected_records)):
+                options.append(str(itr))
+            next_show_record = self.get_user_input("Give next record number (exit = Esc)", options=options, typ="commmon_switch")
+            if next_show_record is None:
+                self.exit_ok = True
+                return
+
+            try:
+                parsed_number = int(next_show_record)
+                record_to_show = connected_records[parsed_number]
+                input_command = " ".join(["show_record", record_to_show[1], record_to_show[2]])
+                self.general_data['server_queue'].append(input_command)
+                self.exit_silence = True
+                self.exit_ok = True
+                return
+            except:
+                self.push_output("Error occured while interpreting data", typ="inset")
+                self.exit_ok = False
+                return
+            
         self.exit_ok = True
         return
 
@@ -812,9 +896,25 @@ class ServerCommands(FileSystem, Connection):
 
     # runs automatic file exchange
     def start_watch(self, command):
+        if self.settings == {}:
+            self.push_output(self.no_settings_defined)
+            return
+
         self.exit_silence = True
+        self.general_data['watcher']['running'] = True
+        self.push_output(str(self.general_data['watcher']), typ="pretty_text")
+        self.watcher_start_watch()
         return
 
+    def stop_watch(self, command):
+        if self.settings == {}:
+            self.push_output(self.no_settings_defined)
+            return
+
+        self.exit_silence = True
+        self.general_data['watcher']['running'] = False
+        self.push_output(str(self.general_data['watcher']), typ="pretty_text")
+        return
 
     # exiting program
     def exit_all(self, command):

@@ -1,5 +1,5 @@
 from urllib import request
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 from json import loads, dumps
 
 class Connection(object):
@@ -66,9 +66,9 @@ class Connection(object):
         if not url.endswith("/"):
             url += "/"
         url += "api/now/table/"
-        url += table
+        url += quote(table)
         if sys_id is not None:
-            url += "/" + sys_id
+            url += "/" + quote(sys_id)
 
         if params != {}:
             get_params = urlencode(params)

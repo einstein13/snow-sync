@@ -7,7 +7,7 @@ class ThreadCommons(object):
         super(ThreadCommons, self).__init__()
         self.input_queue = inp # DICT: []
         self.output_queue = out # LIST: []
-        self.general_data = gen_dat # DICT: {'running': True, 'server_queue': []}
+        self.general_data = gen_dat # DICT: {'running': True, 'server_queue': [], 'watcher': {}}
         return
 
     def push_output(self, message, typ="text"):

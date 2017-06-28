@@ -1,15 +1,15 @@
+from time import sleep
+from threading import active_count
+
 from pipes.input import Input
 from pipes.output import Output
 from self_server.server import Server
 from connection.link import Link
-
-from time import sleep
-from threading import active_count
+from commons.standard_objects import general_data
 
 def main():
     input_queue = []
     output_queue = []
-    general_data = {'running': True, 'server_queue': []}
 
     input_object = Input(input_queue, output_queue, general_data)
     input_thread = input_object.run()

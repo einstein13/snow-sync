@@ -518,6 +518,16 @@ class CommandRecognizer(object):
             'command': 'start_watch',
             'aliases': ['watch', 'start watch', 'start_watch', 'start watching', 'start_watching']
             },
+        {
+            'command': 'stop_watch',
+            'aliases': ['unwatch', 'stop watch', 'stop_watch', 'stop watching', 'stop_watching']
+            },
+        # RECORDS
+        {
+            'command': 'show_record',
+            'aliases': ['show record', 'show_record', 'show records', 'show_records',
+                'read record', 'read_record', 'read records', 'read_records']
+            },
         # empty for copy
         {
             'command': '',
