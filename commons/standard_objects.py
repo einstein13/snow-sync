@@ -3,6 +3,7 @@ from time import time
 general_data = {
     'running': True,
     'server_queue': [],
+    'pull': False,
     'watcher': { # settings for watcher
         'running': False,
         'last_pull': time(),

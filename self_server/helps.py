@@ -209,11 +209,16 @@ class HelpData(object):
             },
         'watch': [
             "WATCH command",
-            "currently under construction"
+            "Starts watcher process: automatic pull and push.",
+            "Every change made to the monitored files are sent to ServiceNow",
+            "and updated there. The same process is backward: any changes",
+            "made on ServiceNow instance are updated to the computer file system.",
+            "First process is almost instant, while the second process has term",
+            "at least 20 seconds (dependent on last pull request time)."
             ],
         'unwatch': [
             "UNWATCH command",
-            "currently under construction"
+            "Stops watcher process: automatic pull and push.",
             ],
         # OTHER TOPICS,
         'about': [
@@ -291,7 +296,18 @@ class HelpData(object):
 
             ],
         'file': 'did you mean \"files\"?',
-        'synchro': ['currently under construction'
+        'synchro': [
+            "You can synchronize files using two systems: manual and automatic.",
+            "Manual system contains 3 commands: status, push and pull.",
+            "The names are taken from GIT version control system and they work similary:",
+            "pull & push change files between computer and server,",
+            "status shows all changes on computer file system.",
+            "Automatic system contains only two commands: watch and unwatch.",
+            "First one is to start the background system, second to stop it.",
+            "While working, the automatic system will look for any saved changes",
+            "made to files on the computer and automaticly push them to the ServiceNow.",
+            "The same process is in the second way: any changes made to files on the server",
+            "are uploaded to the computer."
             ],
         'synchronizing': 'did you mean \"synchro\"?'
         }

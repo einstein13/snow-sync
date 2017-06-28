@@ -1,5 +1,6 @@
 from base64 import b64encode
-from time import sleep
+from threading import Thread
+from time import sleep, time
 from os import path, pardir
 
 from commons.find import list_dict_find, list_dict_find_by_name
@@ -648,11 +649,14 @@ class ServerCommands(FileSystem, Connection, Watcher):
         return
 
     # pull from the server
-    def pull_one_file(self, file_data):
+    def pull_one_file(self, file_data, pull_list=[], list_index=None):
         # download data
         record_data = self.connect_api(file_data['table'], sys_id=file_data['sys_id'])
         if record_data is None:
             self.push_output("Error occured while reading remote files", typ="inset")
+            # for asynch pull
+            if list_index is not None:
+                pull_list[list_index] = True
             return False
         # get data from local file system
         file_data = self.get_files_content(file_data)
@@ -698,7 +702,62 @@ class ServerCommands(FileSystem, Connection, Watcher):
 
         if files_changed:
             self.update_hashes(file_data)
+
+        # for asynch pull
+        if list_index is not None:
+            pull_list[list_index] = True
+
         return True
+
+    # def pull_all_files_core(self):
+        # # old method - just backup
+        # files_list = self.get_settings_files_list()
+        # for itr in range(len(files_list)):
+        #     file_data = files_list[itr]
+        #     self.pull_one_file(file_data)
+        #     self.push_output("Done: %d/%d" % (itr+1, len(files_list)), typ="inset")
+        # return
+
+    def pull_all_files_core(self):
+        if self.general_data['pull']:
+            self.push_output("ERROR: another pull request is currently running", typ="inset")
+            return
+        # set flag (two pulls can't work in the same time)
+        self.general_data['pull'] = True
+
+        files_list = self.get_settings_files_list()
+        expected_number = len(files_list)
+        all_uploads = [False] * expected_number 
+        old_done = -1 # how many done earlier
+        new_done = 0 # how many done currently
+
+        # start threads
+        for itr in range(expected_number):
+            arguments = [files_list[itr], all_uploads, itr]
+            thread = Thread(target = self.pull_one_file, args=arguments)
+            thread.start()
+            sleep(0.05)
+
+        # count done
+        T0 = time()
+        while old_done < expected_number:
+            new_done = 0
+            for itr in range(expected_number):
+                if all_uploads[itr]:
+                    new_done += 1
+            if new_done != old_done:
+                self.push_output("Done: %d/%d" % (new_done, expected_number), typ="inset")
+                T0 = time()
+                old_done = new_done
+            else:
+                if time()-T0 > 30:
+                    old_done = expected_number
+                    self.push_output("ERROR: too long time of response while pulling", typ="inset")
+            sleep(0.2)
+
+        # finish when all done
+        self.general_data['pull'] = False
+        return
 
     def pull_all_files(self, command):
         if self.settings == {}:
@@ -731,13 +790,10 @@ class ServerCommands(FileSystem, Connection, Watcher):
             return
 
         # pull all files
-        files_list = self.get_settings_files_list()
-        for itr in range(len(files_list)):
-            file_data = files_list[itr]
-            self.pull_one_file(file_data)
-            self.push_output("Done: %d/%d" % (itr+1, len(files_list)), typ="inset")
+        self.pull_all_files_core()
 
         # exit command
+        self.general_data['watcher']['last_pull'] = time()
         self.exit_ok = True
         return
 

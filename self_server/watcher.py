@@ -33,13 +33,10 @@ class Watcher(object):
         self.push_output(text, typ="inset")
         text = "Unpushed changes can be erased."
         self.push_output(text, typ="inset")
+
         # pull all files
         T0 = time()
-        files_list = self.get_settings_files_list()
-        for itr in range(len(files_list)):
-            file_data = files_list[itr]
-            self.pull_one_file(file_data)
-            self.push_output("Done: %d/%d" % (itr+1, len(files_list)), typ="inset")
+        self.pull_all_files_core()
 
         # save timestamp
         T1 = time()
