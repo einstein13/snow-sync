@@ -7,6 +7,7 @@ class Input(ThreadCommons):
 
     input_command = ''
     input_history = []
+    input_history_position = -1
 
     command_interpreting = None
     command_valid_list = None
@@ -28,10 +29,10 @@ class Input(ThreadCommons):
         # special characters: F1-F12, Arrows
         if ord(inp) in (224, 0):
             # print("SPECIAL sign")
-            inp1 = inp
+            inp1 = ord(inp)
             inp2 = self.scan()
             # TO DO: what with those signs?
-            return None
+            return [inp1, inp2]
         # standard keyboard sign
         try:
             return inp.decode("utf-8")
@@ -45,6 +46,7 @@ class Input(ThreadCommons):
     def cleanup_input_command(self):
         if self.input_command:
             self.input_history.append(self.input_command)
+            self.input_history_position = len(self.input_history)
         self.input_command = ''
         return
 
@@ -140,7 +142,10 @@ class Input(ThreadCommons):
 
         # standard command
         if self.command_interpreting is None:
-            if ord(sign) == 13: # Enter
+            if self.input_command == '' and ord(sign) == 32: # space
+                # command can't starts with the space
+                pass
+            elif ord(sign) == 13: # Enter
                 if self.input_command:
                     self.send_completed_command()
                 else:
@@ -168,7 +173,10 @@ class Input(ThreadCommons):
 
         # expected command
         else:
-            if ord(sign) == 13: # Enter
+            if self.input_command == '' and ord(sign) == 32: # space
+                # command can't starts with the space
+                pass
+            elif ord(sign) == 13: # Enter
                 if self.input_command:
                     if self.command_character_replacement is None:
                         self.push_output(self.input_command, typ='full_command')
@@ -211,6 +219,34 @@ class Input(ThreadCommons):
                     self.input_command += sign
                     self.push_output(self.command_character_replacement, typ='command_sign')
         return
+
+    def interpret_special_signs(self, signs):
+        # arrows
+        if signs[0] in (224, 0):
+            if signs[1] == 'H': # Arrow UP
+                if self.input_history_position > 0:
+                    # get command
+                    self.input_history_position -= 1
+                    command = self.input_history[self.input_history_position]
+                    # clean memory
+                    if self.input_command != '':
+                        self.abort_written_command()
+                    # push command
+                    self.push_output(command, typ='command_sign')
+                    self.input_command = command
+
+            elif signs[1] == 'P': # Arrow DOWN
+                if self.input_history_position < len(self.input_history)-1 and\
+                        self.input_history_position >= 0:
+                    # get command
+                    self.input_history_position += 1
+                    command = self.input_history[self.input_history_position]
+                    # clean memory
+                    if self.input_command != '':
+                        self.abort_written_command()
+                    # push command
+                    self.push_output(command, typ='command_sign')
+                    self.input_command = command
 
     # varoius things
     def prepare_new_command_interpret(self):
@@ -268,8 +304,7 @@ class Input(ThreadCommons):
                 self.interpret_sign(sign)
 
             else:
-                # special signs! (arrows?)
-                # TO DO!
+                # arrows and ? (what else?)
+                self.interpret_special_signs(sign)
                 sleep(0.01)
         return
-
