@@ -3,7 +3,7 @@ from threading import Thread
 from time import sleep, time
 from os import path, pardir
 
-from commons.find import list_dict_find, list_dict_find_by_name
+from commons.find import list_dict_find, list_dict_find_by_name, remove_from_list
 from commons.prints import pretty_json_print, dict_to_list, fix_newline_signs, generate_hash, hash_password
 from commons.common_files import generate_standard_data_file_schema, parse_data_to_dict,\
         generate_standard_data_file_content
@@ -328,6 +328,7 @@ class ServerCommands(FileSystem, Connection, Watcher):
         string = "Choose record type:"
         found_type = self.get_user_input(string, options=all_options, typ="commmon_switch")
         if found_type is None:
+            self.abort_current_command(self.exit_current)
             return
 
         record_characteristics = CD.find_data_by_alias(found_type)
@@ -340,11 +341,13 @@ class ServerCommands(FileSystem, Connection, Watcher):
         if table == "":
             table = self.get_user_input("Table name of the record:", typ="case_sensitive")
             if table is None:
+                self.abort_current_command(self.exit_current)
                 return
 
         # sys_id
         sys_id = self.get_user_input("Record sys_id:", typ="case_sensitive")
         if sys_id is None:
+            self.abort_current_command(self.exit_current)
             return
 
         # downloaded data
@@ -365,6 +368,8 @@ class ServerCommands(FileSystem, Connection, Watcher):
             question = "Name of the record (attribute or user defined in quotation marks):"
             record_name = self.get_user_input(question, typ="case_sensitive")
             if not record_name:
+                if record_name is None:
+                    self.abort_current_command(self.exit_current)
                 return
             # Get data
             quotations = ["\"", "\'"]
@@ -396,34 +401,40 @@ class ServerCommands(FileSystem, Connection, Watcher):
                 # [name_of_field, additional_comments, "", field_data]
 
         if scripts_list == [] and fields_list == []:
+            scripts_list = []
+            fields_list = []
             if not result_data_shown:
                 self.show_result_data_in_table()
                 result_data_shown = True
 
             # Ask about all scripts
-            self.push_output("Define fields that will be saved as files (Esc = next step)")
+            self.push_output("Define fields that will be saved as files (Esc = next step)\n", typ="inset")
             while True:
 
                 field_name = self.get_user_input("Field name:", typ="enable_escaping")
                 if field_name is None:
+                    remove_from_list(self.general_data['server_queue'], self.exit_current)
                     break
 
                 file_name = self.get_user_input("File name (for %s):" % field_name, typ="enable_escaping")
                 if file_name is None:
+                    remove_from_list(self.general_data['server_queue'], self.exit_current)
                     break
 
                 scripts_list.append([field_name, file_name])
 
             # Ask about all fileds
             fields_list.append("Basic")
-            self.push_output("Define all custom fields that will be stored in a single data file (Esc = end process)")
+            self.push_output("Define all custom fields that will be stored in a single data file (Esc = end process)", typ="inset")
             while True:
                 comment = self.get_user_input("Field description (comment):", typ="enable_escaping")
                 if comment is None:
+                    remove_from_list(self.general_data['server_queue'], self.exit_current)
                     break
 
                 field_name = self.get_user_input("Field name:", typ="enable_escaping")
                 if field_name is None:
+                    remove_from_list(self.general_data['server_queue'], self.exit_current)
                     break
 
                 fields_list.append([comment, "", field_name])
@@ -435,6 +446,11 @@ class ServerCommands(FileSystem, Connection, Watcher):
                 # [field, file, hash]
         
         # create storage folder
+        if len(scripts_list) == 0 and len(fields_list) == 1:
+            # nothing to create
+            self.push_output("Nothing to create", typ="inset")
+            self.exit_ok = True
+            return
         self.create_record_folder(record_type, record_name)
 
         # create scripts files
@@ -448,7 +464,7 @@ class ServerCommands(FileSystem, Connection, Watcher):
                 saved_hashes.append([row[0], row[1], hashed])
 
         # create data file
-        if len(fields_list) > 0:
+        if len(fields_list) > 1: # more than "Basic"
             file_content = generate_standard_data_file_content(result_data, fields_list)
             data = [record_type, record_name, self.standard_paths['file_standard_file'], file_content]
             self.override_record_file(data)
@@ -555,9 +571,11 @@ class ServerCommands(FileSystem, Connection, Watcher):
         if len(command_arguments[2]) < 2:
             table = self.get_user_input("Table name of the record:", typ="case_sensitive")
             if table is None:
+                self.abort_current_command(self.exit_current)
                 return
             sys_id = self.get_user_input("Record sys_id:", typ="case_sensitive")
             if sys_id is None:
+                self.abort_current_command(self.exit_current)
                 return
         else:
             table = command_arguments[2][0]
