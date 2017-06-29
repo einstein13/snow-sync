@@ -36,7 +36,6 @@ class Input(ThreadCommons):
             # print("SPECIAL sign")
             inp1 = ord(inp)
             inp2 = self.scan()
-            # TO DO: what with those signs?
             return [inp1, inp2]
         # standard keyboard sign
         try:

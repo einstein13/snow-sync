@@ -245,10 +245,8 @@ class HelpData(object):
             "There are several tools you can easily use:",
             "  * Esc - canceles written part of command or quit command",
             "  * Ctrl + v - paste any text from the clipboard",
-            "",
-            "There are several \"TO DO\" tools:",
-            "  * TAB auto completer",
-            "  * arrow-up/down command memory"
+            "  * TAB - auto complete all matching commands",
+            "  * arrow up/down - retype command from typed ones"
             ],
         'settings': [
             "Settings is saved data about connection with your instances.",
