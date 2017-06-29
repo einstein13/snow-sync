@@ -1,6 +1,7 @@
 from time import sleep
 
 from commons.threads import ThreadCommons
+from self_server.datatypes import CommandRecognizer
 from .getch import getch
 
 class Input(ThreadCommons):
@@ -8,6 +9,10 @@ class Input(ThreadCommons):
     input_command = ''
     input_history = []
     input_history_position = -1
+
+    autofill_old_command = ''
+    autofill_position = 0
+    autofill_list = []
 
     command_interpreting = None
     command_valid_list = None
@@ -43,6 +48,12 @@ class Input(ThreadCommons):
         return None
 
     # custom reaction
+    def cleanup_autofill(self):
+        self.autofill_old_command = ''
+        self.autofill_position = 0
+        self.autofill_list = []
+        return
+
     def cleanup_input_command(self):
         if self.input_command:
             self.input_history.append(self.input_command)
@@ -65,11 +76,13 @@ class Input(ThreadCommons):
         self.push_output('\n', typ='command_sign')
         self.push_output(self.input_command, typ='full_command')
         self.cleanup_input_command()
+        self.cleanup_autofill()
         return
 
     def push_answer(self):
         answer = self.input_command
         self.cleanup_input_command()
+        self.cleanup_autofill()
         if answer is not None:
             if not self.command_case_sensitive:
                 answer = answer.lower()
@@ -86,10 +99,38 @@ class Input(ThreadCommons):
     def send_quiet_command(self, command):
         self.general_data['server_queue'].append(command)
         self.cleanup_input_command()
+        self.cleanup_autofill()
 
     def autofill_command(self):
-        # TO DO!
-        pass
+        if self.input_command == '':
+            # if there is nothing to look for
+            return
+
+        # else - there is something written
+        # self.push_output(str(self.autofill_position), typ="inset")
+        # self.push_output(str(self.autofill_list), typ="inset")
+        # self.push_output(str(self.autofill_old_command), typ="inset")
+        if self.autofill_old_command == '':
+            CD = CommandRecognizer()
+            possibilities = CD.find_autofill_commands(self.input_command)
+            if len(possibilities) == 0:
+                # nothing to do
+                return
+            self.autofill_position = 0
+            self.autofill_list = possibilities
+            self.autofill_old_command = self.input_command
+            # self.push_output(str(self.autofill_position), typ="inset")
+            # self.push_output(str(self.autofill_list), typ="inset")
+            # self.push_output(str(self.autofill_old_command), typ="inset")
+
+        command = self.autofill_list[self.autofill_position]
+        # self.push_output(command, typ="pretty_text")
+        # set next number
+        self.autofill_position = (self.autofill_position + 1) % len(self.autofill_list)
+        self.abort_written_command()
+        self.input_command = command
+        self.push_output(self.input_command, typ='command_sign')
+        return
 
     def abort_written_command(self):
         self.push_output(chr(8)*len(self.input_command), typ='abort_command')
@@ -158,12 +199,14 @@ class Input(ThreadCommons):
             elif ord(sign) == 22: # Ctrl + V
                 self.copy_clipboard_to_input()
             elif ord(sign) == 27: # Esc
+                self.cleanup_autofill()
                 if self.input_command == '':
                     # What should be done?
                     self.send_quiet_command('exit_with_prompt')
                 else:
                     self.abort_written_command()
             elif ord(sign) == 8: # Backspace
+                self.cleanup_autofill()
                 if len(self.input_command) == 1:
                     self.abort_written_command()
                 elif len(self.input_command) > 1:
@@ -196,6 +239,7 @@ class Input(ThreadCommons):
             elif ord(sign) == 22: # Ctrl + V
                 self.copy_clipboard_to_input()
             elif ord(sign) == 27: # Esc
+                self.cleanup_autofill()
                 if self.input_command != '':
                     self.abort_written_command()
                 else:
@@ -208,6 +252,7 @@ class Input(ThreadCommons):
                         self.push_answer()
                     self.cleanup_command_interpretation()
             elif ord(sign) == 8: # Backspace
+                self.cleanup_autofill()
                 if len(self.input_command) == 1:
                     self.abort_written_command()
                 elif len(self.input_command) > 1:
@@ -288,6 +333,7 @@ class Input(ThreadCommons):
 
             # cleaning up old messages
             self.cleanup_input_command()
+            self.cleanup_autofill()
 
         return
 

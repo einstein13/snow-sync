@@ -447,11 +447,13 @@ class CommandRecognizer(object):
         # EXITING
         {
             'command': 'exit_current_command',
-            'aliases': ['exit_current_command']
+            'aliases': ['exit_current_command'],
+            'skip_autofill': True
             },
         {
             'command': 'exit_with_prompt',
-            'aliases': ['exit_with_prompt']
+            'aliases': ['exit_with_prompt'],
+            'skip_autofill': True
             },
         {
             'command': 'exit_all',
@@ -477,8 +479,8 @@ class CommandRecognizer(object):
             },
         {
             'command': 'delete_settings',
-            'aliases': ['delete_settings', 'delete_setting', 'delete settings', 'delete setting',
-                'remove_settings', 'remove settings', 'remove_settings', 'remove setting']
+            'aliases': ['delete_settings', 'delete_setting', 'remove_settings', 'remove_settings',
+                'delete settings', 'delete setting', 'remove settings', 'remove setting']
             },
         {
             'command': 'read_settings',
@@ -495,8 +497,8 @@ class CommandRecognizer(object):
             },
         {
             'command': 'delete_files',
-            'aliases': ['delete_files', 'delete_file', 'delete files', 'delete file',
-                'remove_files', 'remove files', 'remove_file', 'remove file']
+            'aliases': ['delete_files', 'delete_file', 'remove_file', 'remove_files',
+                'delete files', 'delete file', 'remove files', 'remove file']
             },
         {
             'command': 'truncate_files',
@@ -504,11 +506,11 @@ class CommandRecognizer(object):
             },
         {
             'command': 'pull_all_files',
-            'aliases': ['pull', 'pull_all', 'pull all', 'git_pull', 'git pull']
+            'aliases': ['pull', 'pull_all', 'git_pull', 'pull all', 'git pull']
             },
         {
             'command': 'push_all_files',
-            'aliases': ['push', 'push_all', 'push all', 'git_push', 'git push']
+            'aliases': ['push', 'push_all', 'git_push', 'push all', 'git push']
             },
         {
             'command': 'show_files_status',
@@ -516,22 +518,23 @@ class CommandRecognizer(object):
             },
         {
             'command': 'start_watch',
-            'aliases': ['watch', 'start watch', 'start_watch', 'start watching', 'start_watching']
+            'aliases': ['watch', 'start_watch', 'start_watching', 'start watch', 'start watching']
             },
         {
             'command': 'stop_watch',
-            'aliases': ['unwatch', 'stop watch', 'stop_watch', 'stop watching', 'stop_watching']
+            'aliases': ['stop_watch', 'stop_watching', 'unwatch', 'stop watch', 'stop watching']
             },
         # RECORDS
         {
             'command': 'show_record',
-            'aliases': ['show record', 'show_record', 'show records', 'show_records',
-                'read record', 'read_record', 'read records', 'read_records']
+            'aliases': ['show_record', 'show_records', 'read_record', 'read_records',
+                'show record', 'show records', 'read record', 'read records', ]
             },
         # empty for copy
         {
             'command': '',
-            'aliases': []
+            'aliases': [],
+            'skip_autofill': False
             }
     ]
 
@@ -641,3 +644,14 @@ class CommandRecognizer(object):
         result += "(command)"
         return result
 
+    def find_autofill_commands(self, command):
+        result = []
+        for record in self.database:
+            if 'skip_autofill' in record and record['skip_autofill']:
+                continue
+            for alias in record['aliases']:
+                if alias.startswith(command):
+                    result.append(alias)
+                    break
+        result.sort()
+        return result
