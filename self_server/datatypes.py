@@ -31,8 +31,9 @@ class ContentDatabase(object):
                     ["Update", comment_boolean, "", "action_update"],
                     ["Delete", comment_boolean, "", "action_delete"],
                     ["Query", comment_boolean, "", "action_query"],
-                    # FILTER CONDITIONS
-                    # ROLE CONDITIONS
+                    ["Filter conditions", "stick to ServiceNow wiki:",
+                        "Operators Available for Filters and Queries", "", "filter_condition"],
+                    ["Role conditions", "roles names separated by comma", "", "role_conditions"],
                     "Actions",
                     ["Set field values", "(use ServiceNow template language)", "", "template"],
                     ["Add message", comment_boolean, "", "add_message"],
@@ -60,8 +61,9 @@ class ContentDatabase(object):
                     ["Apply to import sets", comment_boolean, "", "apply_import_set"],
                     ["Apply to SOAP", comment_boolean, "", "apply_soap"],
                     ["Use as UI Policy on client", comment_boolean, "", "enforce_ui"],
-                    ["Short description", "", "short_description"]
-                    # CONDITIONS?
+                    ["Short description", "", "short_description"],
+                    ["Conditions", "stick to ServiceNow wiki:",
+                        "Operators Available for Filters and Queries", "", "conditions"]
                 ]
         },
         {
@@ -128,7 +130,8 @@ class ContentDatabase(object):
                     ["Short description", "", "short_description"],
                     ["Order", comment_integer, "", "order"],
                     "When to Apply",
-                    # CONDITIONS
+                    ["Conditions", "stick to ServiceNow wiki:",
+                        "Operators Available for Filters and Queries", "", "conditions"],
                     ["Global", comment_boolean, "", "global"],
                     ["On load", comment_boolean, "", "on_load"],
                     ["Reverse if false", comment_boolean, "", "reverse_if_false"],
@@ -281,7 +284,8 @@ class ContentDatabase(object):
                     ["Short description", "", "short_description"],
                     ["Active", comment_boolean, "", "active"],
                     "When to Apply",
-                    # CATALOG CONDITIONS
+                    ["Catalog conditions", "stick to ServiceNow wiki:",
+                        "Operators Available for Filters and Queries", "", "catalog_conditions"],
                     ["Applies on Catalog Item view", comment_boolean, "", "applies_catalog"],
                     ["Applies on Catalog Tasks", comment_boolean, "", "applies_sc_task"],
                     ["Applies on Requested Items", comment_boolean, "", "applies_req_item"],
@@ -467,24 +471,30 @@ class CommandRecognizer(object):
         # SETTINGS
         {
             'command': 'show_settings',
-            'aliases': ['show_settings', 'show_setting', 'show settings', 'show setting']
+            'aliases': ['show_settings', 'show_setting', 'show_connection', 'show_connections',
+                'show settings', 'show setting', 'show connection', 'show connections']
             },
         {
             'command': 'add_settings',
-            'aliases': ['add_settings', 'add_setting', 'add settings', 'add setting']
+            'aliases': ['add_settings', 'add_setting', 'add_connection', 'add_connections',
+                'add settings', 'add setting', 'add connection', 'add connections']
             },
         {
             'command': 'edit_settings',
-            'aliases': ['edit_settings', 'edit_setting', 'edit settings', 'edit setting']
+            'aliases': ['edit_settings', 'edit_setting', 'edit_connection', 'edit_connections'
+                'edit settings', 'edit setting', 'edit connection', 'edit connections']
             },
         {
             'command': 'delete_settings',
             'aliases': ['delete_settings', 'delete_setting', 'remove_settings', 'remove_settings',
-                'delete settings', 'delete setting', 'remove settings', 'remove setting']
+                'delete_connection', 'delete_connections', 'remove_connection', 'remove_conections',
+                'delete settings', 'delete setting', 'remove settings', 'remove setting',
+                'delete connection', 'delete connections', 'remove connection', 'remove conections']
             },
         {
             'command': 'read_settings',
-            'aliases': ['read_settings', 'read_setting', 'read settings', 'read setting']
+            'aliases': ['read_settings', 'read_setting', 'read_connection', 'read_connections',
+                'read settings', 'read setting', 'read connection', 'read connections']
             },
         # FILES
         {

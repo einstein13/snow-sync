@@ -606,6 +606,7 @@ class ServerCommands(FileSystem, Connection, Watcher):
                 options.append(str(itr))
             next_show_record = self.get_user_input("Give next record number (exit = Esc)", options=options, typ="commmon_switch")
             if next_show_record is None:
+                remove_from_list(self.general_data['server_queue'], self.exit_current)
                 self.exit_ok = True
                 return
 

@@ -22,6 +22,7 @@ class HelpData(object):
             "  add files - add new file to the configuration",
             "  delete files - delete existing file record from the configuration",
             "  truncate files - delete all records from the configuration",
+            "  show record - shows full record from ServiceNow database",
             "SYNCHRO:",
             "  pull - get all files from the server",
             "  push - update files on the server",
@@ -65,6 +66,18 @@ class HelpData(object):
                 "Running other commands can modify or use this list",
                 "",
                 "See also: \"show settings\", \"add files\", \"status\"",
+                ],
+            'record': [
+                "SHOW RECORD command",
+                "Shows full record from ServiceNow database.",
+                "Data is displayed in table form. After displaying,",
+                "there is a possibility to display related record.",
+                "Usage examples:",
+                "  show record",
+                "  show record TABLE_NAME SYS_ID",
+                "    show record sys_user 6816f79cc0a8016401c5a33be04be441",
+                "",
+                "See also: \"add files\", \"status\""
                 ],
             'default': 'did you mean \"show files\" or \"show settings\"?'
             },
