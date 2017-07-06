@@ -866,7 +866,7 @@ class ServerCommands(FileSystem, Connection, Watcher):
         # self.push_output(str(files_list), typ="pretty_text")
         # self.push_output(str(changed_files), typ="pretty_text")
 
-        for record in changed_files[:-1]:
+        for record in changed_files:
             if record[0] == self.file_status_names['changed']:
                 file_data = list_dict_find_by_name(files_list, record[1]['name'])[1]
                 file_data = self.get_files_content(file_data)
