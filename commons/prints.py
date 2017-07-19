@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from json import dumps
 from hashlib import sha1
 from base64 import b64encode

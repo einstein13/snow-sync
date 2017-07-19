@@ -1,4 +1,7 @@
-import sys
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from sys import stdout
 
 from time import sleep
 
@@ -14,7 +17,7 @@ class DataPrint(object):
         'input_command_written_sign': False # there was a single sign added
         }
 
-    def print(self, text, begin=None, end=None):
+    def custom_print(self, text, begin=None, end=None):
         # default: ''
         # or given begin
         # or added '\n' when flag
@@ -31,31 +34,31 @@ class DataPrint(object):
             new_end = end
 
         if type(text) is str:
-            print(new_begin + text, end=new_end)
+            stdout.write(new_begin + text + new_end)
         else:
             try:
-                print(new_begin + str(text), end=new_end)
+                stdout.write(new_begin + str(text) + new_end)
             except:
-                print("Unable to print data")
-        sys.stdout.flush()
+                stdout.write("Unable to print data\n")
+        stdout.flush()
         return
 
     def pretty_print(self, text):
         prettiness = "* * * * * * * * * * * * * * * * * * * *"
-        self.print(prettiness, begin="\n")
-        self.print(text)
-        self.print(prettiness, end="\n\n")
+        self.custom_print(prettiness, begin="\n")
+        self.custom_print(text)
+        self.custom_print(prettiness, end="\n\n")
         return
 
     def print_inset(self, text):
-        self.print("> " + text)
+        self.custom_print("> " + text)
         return
 
     def clean_comand_line(self, length):
-        self.print(chr(8)*length, begin='', end="")
+        self.custom_print(chr(8)*length, begin='', end="")
         if not self.flags['input_command_interrupted']:
-            self.print(" "*length, begin='', end="")
-            self.print(chr(8)*length, begin='', end="")
+            self.custom_print(" "*length, begin='', end="")
+            self.custom_print(chr(8)*length, begin='', end="")
         if len(self.input_command) < length:
             self.input_command = ""
         else:
@@ -67,7 +70,7 @@ class DataPrint(object):
         if self.flags['input_command_interrupted']:
             self.flags['input_command_writing'] = False
             self.flags['input_command_interrupted'] = False
-            self.print("\n", begin='', end="")
+            self.custom_print("\n", begin='', end="")
             return
         # command wasn't interrupted
         self.clean_comand_line(len(text))
@@ -80,7 +83,7 @@ class DataPrint(object):
             self.clean_comand_line(1)
             return
         self.flags['input_command_writing'] = True
-        self.print(text, begin='', end="")
+        self.custom_print(text, begin='', end="")
         self.flags['input_command_written_sign'] = True
         special_characters = [
             chr(13), # Enter
@@ -97,12 +100,12 @@ class DataPrint(object):
 
         # command wasn't written at all
         if not self.flags['input_command_writing']:
-            self.print(text)
+            self.custom_print(text)
             self.flags['input_command_interrupted'] = False
             return
         # command was interrupted when writing
         if self.flags['input_command_interrupted']:
-            self.print(text, begin="\n")
+            self.custom_print(text, begin="\n")
             self.flags['input_command_interrupted'] = False
             self.flags['input_command_writing'] = False
             return
@@ -126,7 +129,7 @@ class DataPrint(object):
         for itr1 in range(1, len(lengths)):
             line_to_print += "┬" + "─" * (lengths[itr1])
         line_to_print += "┐"
-        self.print(line_to_print)
+        self.custom_print(line_to_print)
 
         line_to_print = ""
         for itr1 in range(len(lengths)):
@@ -134,13 +137,13 @@ class DataPrint(object):
             additional_spaces = (lengths[itr1] - len(element) -1)
             line_to_print += "│ " + element + " " * additional_spaces
         line_to_print += "│"
-        self.print(line_to_print)
+        self.custom_print(line_to_print)
 
         line_to_print = "├" + "─" * (lengths[0])
         for itr1 in range(1, len(lengths)):
             line_to_print += "┼" + "─" * (lengths[itr1])
         line_to_print += "┤"
-        self.print(line_to_print)
+        self.custom_print(line_to_print)
 
         # print body
         for itr1 in range(1, len(data)):
@@ -151,20 +154,20 @@ class DataPrint(object):
                 additional_spaces = (lengths[itr2] - len(element) -1)
                 line_to_print += "│ " + element + " " * additional_spaces
             line_to_print += "│"
-            self.print(line_to_print)
+            self.custom_print(line_to_print)
 
         # end table
         line_to_print = "└" + "─" * (lengths[0])
         for itr1 in range(1, len(lengths)):
             line_to_print += "┴" + "─" * (lengths[itr1])
         line_to_print += "┘"
-        self.print(line_to_print)
+        self.custom_print(line_to_print)
 
         return
 
     def json_print(self, data):
         result = pretty_json_print(data)
-        self.print(result)
+        self.custom_print(result)
         return
 
     def print_data(self, data):
@@ -172,10 +175,10 @@ class DataPrint(object):
 
         # print switch
         if type(data) is str:
-            self.print(data)
+            self.custom_print(data)
         elif type(data) is dict:
             if data['type'] is 'text':
-                self.print(data['message'])
+                self.custom_print(data['message'])
             elif data['type'] is 'command_sign':
                 self.write_command_sign(data['message'])
                 interrupt = False
@@ -190,7 +193,7 @@ class DataPrint(object):
             elif data['type'] is 'table':
                 self.table_print(data['message'])
         else:
-            self.print(data)
+            self.custom_print(data)
 
         # change flags
         if self.flags['input_command_writing'] and interrupt:

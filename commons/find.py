@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 def list_dict_find_by_name(list_of_dicts, name_to_find):
     if name_to_find is None:
         return None

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # http://code.activestate.com/recipes/134892/
 
 class _Getch:

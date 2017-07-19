@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from base64 import b64encode
 from threading import Thread
 from time import sleep, time

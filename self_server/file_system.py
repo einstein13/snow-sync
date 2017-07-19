@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from json import loads
 from os import path, pardir, makedirs, rename
 from shutil import rmtree
