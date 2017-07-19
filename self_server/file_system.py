@@ -37,11 +37,20 @@ class FileSystem(object):
         basic_folder_names = ["snow-sync", "snow-sync-master"]
         file_path = path.abspath(__file__)
         folder_path = file_path
-        while len(folder_path.split("\\")) > 0 and \
-                    folder_path.split("\\")[-1] not in basic_folder_names:
+        while True:
+            splitted = folder_path.split("\\") # Windows
+            if len(splitted) == 1:
+                splitted = folder_path.split("/") # Linux
+            # now "splitted" is a path splitted into folders
+            if splitted[-1] in basic_folder_names:
+                # found correct path
+                break
+            # save old path
             old_path = folder_path
+            # create new path - less by one folder
             folder_path = path.abspath(path.join(folder_path, pardir))
             if old_path == folder_path:
+                # if that is the end of the path
                 self.output_queue.append({'type': 'text', 'message': 'There was a problem with recognizing the path'})
                 return None
         return folder_path

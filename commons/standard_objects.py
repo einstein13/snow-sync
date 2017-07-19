@@ -17,3 +17,5 @@ general_data = {
         'sleep_time': 0.5
         }
     }
+
+eol = "\r\n"

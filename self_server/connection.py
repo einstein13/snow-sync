@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from urllib import request
-from urllib.parse import urlencode, quote
+try: # Python 3+
+    from urllib.request import Request, urlopen
+    from urllib.parse import urlencode, quote
+except: # Pyton 2.7
+    from urllib2 import Request, urlopen
+    from urllib import urlencode, quote
 from json import loads, dumps
 
 class Connection(object):
@@ -17,8 +21,8 @@ class Connection(object):
         new_headers['Authorization'] = "Basic " + self.server_data['authorization']
         # url
         new_url = 'https://dev30036.service-now.com/api/now/table/sys_script?sysparm_limit=2'
-        request_object = request.Request(new_url, headers=new_headers)
-        url_connection=request.urlopen(request_object)
+        request_object = Request(new_url, headers=new_headers)
+        url_connection=urlopen(request_object)
         connection_result=url_connection.read()
         dict_result=loads(connection_result.decode("utf-8"))
         return dict_result
@@ -42,14 +46,14 @@ class Connection(object):
 
         request_object = None
         if data is None:
-            request_object = request.Request(url, headers=new_headers)
+            request_object = Request(url, headers=new_headers)
         else:
             parsed_data = dumps(data)
             parsed_data = parsed_data.encode("utf-8")
-            request_object = request.Request(url, headers=new_headers, data=parsed_data, method="PUT")
+            request_object = Request(url, headers=new_headers, data=parsed_data, method="PUT")
 
         try:
-            connection = request.urlopen(request_object)
+            connection = urlopen(request_object)
         except Exception as e:
             self.push_output("Connection error", typ="inset")
             self.push_output(e, typ="pretty_text")

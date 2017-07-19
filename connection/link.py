@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from urllib import request
+try: # Python 3+
+    from urllib import request
+except: # Pyton 2.7
+    from urllib2 import request
 from json import loads
 
 class Link(object):

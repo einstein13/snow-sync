@@ -4,6 +4,7 @@
 from time import sleep
 
 from commons.threads import ThreadCommons
+from commons.standard_objects import eol
 from self_server.datatypes import CommandRecognizer
 from .getch import getch
 
@@ -75,7 +76,7 @@ class Input(ThreadCommons):
 
     def send_completed_command(self):
         self.general_data['server_queue'].append(self.input_command)
-        self.push_output('\n', typ='command_sign')
+        self.push_output(eol, typ='command_sign')
         self.push_output(self.input_command, typ='full_command')
         self.cleanup_input_command()
         self.cleanup_autofill()
@@ -226,7 +227,7 @@ class Input(ThreadCommons):
                     if self.command_character_replacement is None:
                         self.push_output(self.input_command, typ='full_command')
                     else:
-                        self.push_output("\n", typ="full_command")
+                        self.push_output(eol, typ="full_command")
                 elif self.command_default_value:
                     if self.command_character_replacement is None:
                         self.push_output(self.command_default_value, typ='full_command')

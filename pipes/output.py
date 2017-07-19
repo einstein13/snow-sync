@@ -7,6 +7,7 @@ from time import sleep
 
 from commons.threads import ThreadCommons
 from commons.prints import pretty_json_print
+from commons.standard_objects import eol
 
 class DataPrint(object):
 
@@ -20,34 +21,35 @@ class DataPrint(object):
     def custom_print(self, text, begin=None, end=None):
         # default: ''
         # or given begin
-        # or added '\n' when flag
+        # or added end_of_line when flag
         new_begin = ''
         if begin is not None:
             new_begin = begin
             self.flags['input_command_written_sign'] = False
         elif self.flags['input_command_written_sign']:
-            new_begin = '\n'
+            new_begin = eol
             self.flags['input_command_written_sign'] = False
 
-        new_end = '\n'
+        new_end = eol
         if end is not None:
             new_end = end
 
+        # print(len(new_end))
         if type(text) is str:
             stdout.write(new_begin + text + new_end)
         else:
             try:
                 stdout.write(new_begin + str(text) + new_end)
             except:
-                stdout.write("Unable to print data\n")
+                stdout.write("Unable to print data"+eol)
         stdout.flush()
         return
 
     def pretty_print(self, text):
         prettiness = "* * * * * * * * * * * * * * * * * * * *"
-        self.custom_print(prettiness, begin="\n")
+        self.custom_print(prettiness, begin=eol)
         self.custom_print(text)
-        self.custom_print(prettiness, end="\n\n")
+        self.custom_print(prettiness, end=eol*2)
         return
 
     def print_inset(self, text):
@@ -70,7 +72,7 @@ class DataPrint(object):
         if self.flags['input_command_interrupted']:
             self.flags['input_command_writing'] = False
             self.flags['input_command_interrupted'] = False
-            self.custom_print("\n", begin='', end="")
+            self.custom_print(eol, begin='', end="")
             return
         # command wasn't interrupted
         self.clean_comand_line(len(text))
@@ -105,7 +107,7 @@ class DataPrint(object):
             return
         # command was interrupted when writing
         if self.flags['input_command_interrupted']:
-            self.custom_print(text, begin="\n")
+            self.custom_print(text, begin=eol)
             self.flags['input_command_interrupted'] = False
             self.flags['input_command_writing'] = False
             return

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from commons.standard_objects import eol
+
 from .datatypes import CommandRecognizer
 
 class HelpData(object):
@@ -333,7 +335,7 @@ class HelpData(object):
             "To show help type \"help\", to quit: \"exit\",",
             "then push enter to confirm command."
             ]
-        string = "\n".join(string)
+        string = eol.join(string)
         self.push_output(string, typ='pretty_text')
         return
 
@@ -361,7 +363,7 @@ class HelpData(object):
             display_data = display_data['default']
 
         if type(display_data) is list:
-            display_data = "\n".join(display_data)
+            display_data = eol.join(display_data)
 
         if unknown_argument_usage:
             self.push_output("Unable to recognize \"%s\" argument" % unknown_argument_text, typ="inset")

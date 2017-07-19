@@ -7,7 +7,7 @@ from threading import active_count
 from pipes.input import Input
 from pipes.output import Output
 from self_server.server import Server
-from connection.link import Link
+# from connection.link import Link
 from commons.standard_objects import general_data
 
 def main():
@@ -35,4 +35,4 @@ def main():
     # everything closed
     return
 
-main ()
+main()
