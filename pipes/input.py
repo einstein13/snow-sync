@@ -59,7 +59,8 @@ class Input(ThreadCommons):
             try:
                 result[itr] = result[itr].decode("utf-8")
             except:
-                print("Error parsing sign [%d]" % ord(result[itr]))
+                pass
+                # print("Error parsing sign [%d]" % ord(result[itr]))
 
         # it is only one sign
         if len(result) == 1:
@@ -314,7 +315,7 @@ class Input(ThreadCommons):
 
     def interpret_special_signs(self, signs):
         # arrows: Windows
-        if len(signs) == 2 and signs[0] in (224, 0):
+        if len(signs) == 2 and ord(signs[0]) in (224, 0):
             if signs[1] == 'H': # Arrow UP
                 self.get_previous_history_command()
             elif signs[1] == 'P': # Arrow DOWN
