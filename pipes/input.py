@@ -61,6 +61,7 @@ class Input(ThreadCommons):
             except:
                 pass
                 # print("Error parsing sign [%d]" % ord(result[itr]))
+            # print("=%d=" % ord(result[itr]))
 
         # it is only one sign
         if len(result) == 1:
@@ -226,7 +227,7 @@ class Input(ThreadCommons):
                     self.send_quiet_command('exit_with_prompt')
                 else:
                     self.abort_written_command()
-            elif ord(sign) == 8: # Backspace
+            elif ord(sign) == 8 or ord(sign) == 127: # Backspace: Win / Linux
                 self.cleanup_autofill()
                 if len(self.input_command) == 1:
                     self.abort_written_command()
@@ -272,7 +273,7 @@ class Input(ThreadCommons):
                         self.input_command = None
                         self.push_answer()
                     self.cleanup_command_interpretation()
-            elif ord(sign) == 8: # Backspace
+            elif ord(sign) == 8 or ord(sign) == 127: # Backspace: Win / Linux
                 self.cleanup_autofill()
                 if len(self.input_command) == 1:
                     self.abort_written_command()
