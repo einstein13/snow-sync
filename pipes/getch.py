@@ -40,3 +40,9 @@ class _GetchWindows:
 
 
 getch = _Getch()
+
+def getch_thread(arguments):
+    while arguments['run']:
+        sign = getch()
+        arguments['signs'].append(sign)
+    return None

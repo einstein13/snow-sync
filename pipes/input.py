@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 
 from time import sleep
+from threading import Thread
 
 from commons.threads import ThreadCommons
 from commons.standard_objects import eol
 from self_server.datatypes import CommandRecognizer
-from .getch import getch
+from .getch import getch_thread
 
 class Input(ThreadCommons):
 
@@ -26,29 +27,45 @@ class Input(ThreadCommons):
     command_character_replacement = None
     command_exit_current_command_on_escape = True
 
+    prepared_arguments = {}
+
     def __init__(self, inp, out, gen_dat):
         super(Input, self).__init__(inp, out, gen_dat)
         self.input_command = ''
         self.input_history = []
+        self.prepared_arguments['signs'] = []
+        self.prepared_arguments['run'] = True
+        return
+
+    def initialize_scanning(self):
+        thread = Thread(target=getch_thread, args=(self.prepared_arguments,))
+        thread.start()
         return
 
     # scanning input
     def scan(self):
-        inp = getch()
-        # special characters: F1-F12, Arrows
-        if ord(inp) in (224, 0):
-            # print("SPECIAL sign")
-            inp1 = ord(inp)
-            inp2 = self.scan()
-            return [inp1, inp2]
-        # standard keyboard sign
-        try:
-            return inp.decode("utf-8")
-        except:
-            pass
+        result = []
+        while len(self.prepared_arguments['signs']) > 0:
+            result.append(self.prepared_arguments['signs'].pop(0))
+            sleep(0.002)
 
-        print("ERROR parsing the sign [%s]" % ord(inp))
-        return None
+        # no input
+        if len(result) == 0:
+            sleep(0.03)
+            return None
+
+        # there is an input
+        for itr in range(len(result)):
+            try:
+                result[itr] = result[itr].decode("utf-8")
+            except:
+                print("Error parsing sign [%d]" % ord(result[itr]))
+
+        # it is only one sign
+        if len(result) == 1:
+            return result[0]
+        # more signs
+        return result
 
     # custom reaction
     def cleanup_autofill(self):
@@ -268,33 +285,46 @@ class Input(ThreadCommons):
                     self.push_output(self.command_character_replacement, typ='command_sign')
         return
 
-    def interpret_special_signs(self, signs):
-        # arrows
-        if signs[0] in (224, 0):
-            if signs[1] == 'H': # Arrow UP
-                if self.input_history_position > 0:
-                    # get command
-                    self.input_history_position -= 1
-                    command = self.input_history[self.input_history_position]
-                    # clean memory
-                    if self.input_command != '':
-                        self.abort_written_command()
-                    # push command
-                    self.push_output(command, typ='command_sign')
-                    self.input_command = command
+    def get_previous_history_command(self):
+        if self.input_history_position > 0:
+            # get command
+            self.input_history_position -= 1
+            command = self.input_history[self.input_history_position]
+            # clean memory
+            if self.input_command != '':
+                self.abort_written_command()
+            # push command
+            self.push_output(command, typ='command_sign')
+            self.input_command = command
+        return None
 
+    def get_next_history_command(self):
+        if self.input_history_position < len(self.input_history)-1 and\
+                self.input_history_position >= 0:
+            # get command
+            self.input_history_position += 1
+            command = self.input_history[self.input_history_position]
+            # clean memory
+            if self.input_command != '':
+                self.abort_written_command()
+            # push command
+            self.push_output(command, typ='command_sign')
+            self.input_command = command
+        return None
+
+    def interpret_special_signs(self, signs):
+        # arrows: Windows
+        if len(signs) == 2 and signs[0] in (224, 0):
+            if signs[1] == 'H': # Arrow UP
+                self.get_previous_history_command()
             elif signs[1] == 'P': # Arrow DOWN
-                if self.input_history_position < len(self.input_history)-1 and\
-                        self.input_history_position >= 0:
-                    # get command
-                    self.input_history_position += 1
-                    command = self.input_history[self.input_history_position]
-                    # clean memory
-                    if self.input_command != '':
-                        self.abort_written_command()
-                    # push command
-                    self.push_output(command, typ='command_sign')
-                    self.input_command = command
+                self.get_next_history_command()
+        if len(signs) == 3 and ord(signs[0]) == 27 and signs[1] == '[':
+            if signs[2] == 'A':
+                self.get_previous_history_command()
+            if signs[2] == 'B':
+                self.get_next_history_command()
+        return None
 
     # varoius things
     def prepare_new_command_interpret(self):
@@ -342,6 +372,7 @@ class Input(ThreadCommons):
 
     # running thread
     def run_thread(self):
+        self.initialize_scanning()
         while self.general_data['running']:
             sign = self.scan()
             if sign is None:
@@ -355,5 +386,6 @@ class Input(ThreadCommons):
             else:
                 # arrows and ? (what else?)
                 self.interpret_special_signs(sign)
-                sleep(0.01)
+                # sleep(0.01)
+        self.prepared_arguments['run'] = False
         return
