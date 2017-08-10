@@ -69,5 +69,10 @@ def generate_hash(string):
 
 def hash_password(username, password):
     string = username + ":" + password
-    hashed = b64encode(bytes(string, "UTF-8")).decode("UTF-8")
+    try:
+        # python 3
+        hashed = b64encode(bytes(string, "UTF-8")).decode("UTF-8")
+    except:
+        # python 2
+        hashed = b64encode(string)
     return hashed

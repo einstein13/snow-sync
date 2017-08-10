@@ -181,7 +181,13 @@ class Input(ThreadCommons):
             import Tkinter as tk
         except ImportError:
             # Python3
-            import tkinter as tk
+            try:
+                import tkinter as tk
+            except ImportError:
+                print("Copyin from clipboard failed. Reason: no Tkinter library.\r")
+                print("Consider installing the package\r")
+                print("Ubuntu: sudo apt-get install python-tk python3-tk\r")
+                return ""
 
         root = tk.Tk()
         # keep the window from showing

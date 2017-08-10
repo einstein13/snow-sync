@@ -11,6 +11,16 @@ It is designed to be as file exchange program between ServiceNow and local disc.
 
 The program will initialize projects folder (ex.: documents/work/projects) and will be ready to use.
 
+## Dependencies
+
+The program is developed as standalone, but sometimes it has to use non-standard libraries.
+
+* Tkinter for copying from clipboard (ctrl+v):
+    * For python 2.7 & Ubuntu: `sudo apt-get install python-tk`
+    * For python 3+ & Ubuntu: `sudo apt-get install python3-tk`
+
+Some of the libraries are added to python itself and don't need to be installed.
+
 # Basic usage
 
 ## Settings up a connection to the ServiceNow
