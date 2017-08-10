@@ -482,7 +482,7 @@ class CommandRecognizer(object):
             },
         {
             'command': 'edit_settings',
-            'aliases': ['edit_settings', 'edit_setting', 'edit_connection', 'edit_connections'
+            'aliases': ['edit_settings', 'edit_setting', 'edit_connection', 'edit_connections',
                 'edit settings', 'edit setting', 'edit connection', 'edit connections']
             },
         {

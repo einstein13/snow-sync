@@ -157,7 +157,6 @@ class ServerCommands(FileSystem, Connection, Watcher):
             self.push_output("Can't find any settings by given name (%s)." % name)
             return
 
-        self.push_output(found_settings, typ="pretty_text")
         last_values = found_settings[1]
         # Now we can modify values
         name = self.get_user_input('Type settings name [%s]:' % last_values['name'],
