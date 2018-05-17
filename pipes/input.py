@@ -388,6 +388,10 @@ class Input(ThreadCommons):
 
             self.prepare_new_command_interpret()
 
+            # Lenovo ThinkPad strange keyboard behaviour
+            if len(sign) == 2 and sign[1] == '\x00':
+                sign = sign[0]
+
             if len(sign) == 1:
                 self.interpret_sign(sign)
 
